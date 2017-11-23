@@ -9,7 +9,7 @@ class MapWidget(QWebEngineView):
     def __init__(self, cache_dir):
         super().__init__()
         self.api_key = "AIzaSyD1iK3XcJHRDowNirQ06qJiGZz-4bOJw7k"
-        self.gmap = gmplot.GoogleMapPlotter.from_geocode("San Francisco")
+        self.gmap = gmplot.GoogleMapPlotter.from_geocode("Germany", zoom=5)
         self.gmap.apikey = self.api_key
 
         self.map_file = os.path.join(cache_dir, "map.html")

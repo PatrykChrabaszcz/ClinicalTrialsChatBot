@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QWidget, QTextEdit, QLineE
 from src.MapWidget import MapWidget
 from src.DialogWidget import DialogWidget
 from src.InputConsole import InputConsole
+from src.DialogFlow import DialogFlow
 
 
 class MainWindow(QMainWindow):
@@ -23,7 +24,11 @@ class MainWindow(QMainWindow):
         self.input_console = InputConsole()
         self.l.addWidget(self.input_console)
 
+        self.dialogflow = DialogFlow()
 
+        self.input_console.message_entered.connect(self.dialog_widget.user_message_entered)
+        self.input_console.message_entered.connect(self.dialogflow.send_request)
+        self.dialogflow.response_received.connect(self.dialog_widget.bot_message_entered)
 
 
 
