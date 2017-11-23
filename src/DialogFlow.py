@@ -16,6 +16,7 @@
 
 import os.path
 import sys
+import json
 
 try:
     import apiai
@@ -28,19 +29,21 @@ except ImportError:
 
 class DialogFlow:
     def __init__(self):
-        self.ai = apiai.ApiAI('b2477d450e0f4c708a50167943645ffa')
+        self.ai = apiai.ApiAI('cce9915cc7f14a41b167f3251581c160')
 
     def send_request(self, message):
         request = self.ai.text_request()
         request.session_id = "1"
         request.query = message
         response = request.getresponse().read()
-
         return response
 
 
 if __name__ == '__main__':
     df = DialogFlow()
 
-    response = df.send_request("What is the weather today in Freiburg")
-    print(response)
+    response = df.send_request("How many Melanoma studies were started each year in Canada?")
+    v = str(response).replace('\\n', '')[2:-1]
+
+    d = json.loads(v)
+    print(d['result'])

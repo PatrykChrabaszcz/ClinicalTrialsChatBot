@@ -21,11 +21,30 @@ class DatabaseConenctor:
 
         self.cur = self.conn.cursor()
 
+    def count(self, disease=None, location=None, location_modifier=None, phase=None,
+              status=None, time=None, time_modifier=None, drug=None):
+
+        pass
 
 if __name__ == '__main__':
     db = DatabaseConenctor()
-    querr = db.cur.execute("select distinct nct_id from studies")
-    rows = db.cur.fetchall()
-    for r in rows:
-        print(r)
-    print(len(rows))
+
+    # 1st question
+    result = db.count(disease='Hepatitis C', location=None, location_modifier='each country', phase='Phase 2',
+                      status='active')
+    print(result)
+
+    result = db.count(disease='Lung Cancer', status='recruiting', location_modifier='different regions',
+                      location='France')
+    print(result)
+
+
+
+
+    # querr = db.cur.execute("select distinct mesh_term from browse_conditions")
+    # rows = db.cur.fetchall()
+    #
+    # file = 'dis'
+    # for r in rows:
+    #     print(r)
+    # print(len(rows))
