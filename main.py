@@ -6,7 +6,7 @@ from src.MainWindow import MainWindow
 
 def main():
     app = QApplication(sys.argv)
-    window = MainWindow("/tmp")
+    window = MainWindow()
     window.resize(600, 600)
     window.show()
 
