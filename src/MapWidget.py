@@ -6,11 +6,12 @@ import gmplot
 from io import StringIO
 from src.Map import Map
 
+
 class MapWidget(QWebEngineView):
     def __init__(self):
         super().__init__()
         self.api_key = "AIzaSyD1iK3XcJHRDowNirQ06qJiGZz-4bOJw7k"
-        self.map = Map.from_geocode("Germany", zoom=5)
+        self.map = Map('0', '0', zoom=10, apikey=self.api_key)
         self.map.apikey = self.api_key
 
         html = self.map.get_html()
