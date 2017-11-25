@@ -25,3 +25,5 @@ class DialogWidget(QTextEdit):
     def bot_message_entered(self, message):
         self.bot_text(message)
 
+    def dialogflow_response(self, resolved_query, parameters, contexts, action):
+        self.user_text(resolved_query)

@@ -1,4 +1,5 @@
 import psycopg2
+from PyQt5.QtCore import QObject
 
 # Hostname:  aact-prod.cr4nrslb1lw7.us-east-1.rds.amazonaws.com
 # Port: 5432
@@ -7,7 +8,8 @@ import psycopg2
 # Password:  aact
 
 
-class DatabaseConenctor:
+class DatabaseConenctor(QObject):
+
     def __init__(self):
         try:
             self.conn = psycopg2.connect("dbname='aact' "
@@ -21,9 +23,13 @@ class DatabaseConenctor:
 
         self.cur = self.conn.cursor()
 
+    # This slot is called when response is received from the DialogFlow bot
+    def dialogflow_response(self, resolved_query, parameters, contexts, action):
+        pass
+
+
     def count(self, disease=None, location=None, location_modifier=None, phase=None,
               status=None, time=None, time_modifier=None, drug=None):
-
         pass
 
 if __name__ == '__main__':

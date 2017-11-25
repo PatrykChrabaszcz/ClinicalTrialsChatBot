@@ -8,7 +8,7 @@ import pickle
 terms = {}
 numbers = {}
 
-meshFile = '/mhome/chrabasp/Download/d2018.bin'
+meshFile = '/home/haskis/Downloads/d2018.bin'
 with open(meshFile, mode='rb') as file:
     mesh = file.readlines()
 
@@ -44,16 +44,19 @@ for item in meshNumberList:
     else:
         print(item, file=outputFile)
 
+
+
+print(terms)
 filtered_terms = {}
 
 for key, value in terms.items():
-    if value[0] != 'D':
+    if value[0] != 'C':
         continue
-    filtered_terms[key] = value
+    filtered_terms[key.decode('utf-8')] = value
 
 categories = {}
 for n in numbers.keys():
-    if n[0] != 'D':
+    if n[0] != 'C':
         continue
 
     term = numbers[n]
@@ -64,13 +67,14 @@ for n in numbers.keys():
         r = r[n_i]
     r['name'] = term
 
-# with open('drugs_name2num.p', 'wb') as f:
-#     pickle.dump(filtered_terms, f)
-#
-# with open('drugs_num2name.p', 'wb') as f:
-#     pickle.dump(categories, f)
 
-with open('drug_names.txt', 'w') as f:
-    for key, value in numbers.items():
-        if key[0] == 'D':
-            f.write('\"%s\", \"%s\"\n' % (value, value))
+with open('disease_name2num.p', 'wb') as f:
+    pickle.dump(filtered_terms, f)
+
+with open('disease_num2name.p', 'wb') as f:
+    pickle.dump(categories, f)
+
+# with open('drug_names.txt', 'w') as f:
+#     for key, value in numbers.items():
+#         if key[0] == 'D':
+#             f.write('\"%s\", \"%s\"\n' % (value, value))

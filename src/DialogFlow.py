@@ -13,7 +13,7 @@ except ImportError:
 
 
 class DialogFlow(QObject):
-    response_received = pyqtSignal(dict)
+    response_received = pyqtSignal(['QString', dict, list, 'QString'])
 
     def __init__(self):
         super().__init__()
@@ -24,8 +24,14 @@ class DialogFlow(QObject):
         request.session_id = "1"
         request.query = message
         response = json.loads(request.getresponse().read().decode('utf-8'))
-        self.response_received.emit(response)
 
+        result = response['result']
+        resolved_query = result['resolvedQuery']
+        parameters = result['parameters']
+        contexts = result['contexts']
+        action = result['action']
+
+        self.response_received.emit(resolved_query, parameters, contexts, action)
 
 if __name__ == '__main__':
     df = DialogFlow()
