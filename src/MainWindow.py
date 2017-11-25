@@ -5,7 +5,7 @@ from src.DialogWidget import DialogWidget
 from src.InputConsole import InputConsole
 from src.DialogFlow import DialogFlow
 from src.TreeWidget import TreeWidget
-
+from src.ChartWidget import ChartWidget
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -21,7 +21,10 @@ class MainWindow(QMainWindow):
         self.l_h.addLayout(self.l_v_right, 2)
 
         self.map_widget = MapWidget()
-        self.l_v_middle.addWidget(self.map_widget, 1)
+        self.l_v_middle.addWidget(self.map_widget, 2)
+
+        self.chart_widget = ChartWidget()
+        self.l_v_middle.addWidget(self.chart_widget, 1)
 
         self.tab_widget = QTabWidget()
         self.l_h_left.addWidget(self.tab_widget, 1)

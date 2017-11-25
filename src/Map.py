@@ -1,7 +1,10 @@
 import gmplot
+import json
+import requests
 
 
 class Map(gmplot.GoogleMapPlotter):
+    api_key = "AIzaSyD1iK3XcJHRDowNirQ06qJiGZz-4bOJw7k"
 
     class FakeFile:
         def __init__(self):
@@ -12,6 +15,17 @@ class Map(gmplot.GoogleMapPlotter):
 
     def __init__(self, center_lat, center_lng, zoom, apikey=''):
         super().__init__(center_lat, center_lng, zoom, apikey)
+
+
+    @classmethod
+    def geocode(self, location_string):
+        geocode = requests.get(
+            'https://maps.googleapis.com/maps/api/geocode/json?address="%s"&key=%s' %
+            (location_string, Map.api_key))
+        geocode = json.loads(geocode.text)
+        print(geocode)
+        latlng_dict = geocode['results'][0]['geometry']['location']
+        return latlng_dict['lat'], latlng_dict['lng']
 
     def get_html(self):
         f = Map.FakeFile()
