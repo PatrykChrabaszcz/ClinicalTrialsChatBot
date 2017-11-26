@@ -1,4 +1,5 @@
 import psycopg2
+import datetime
 from PyQt5.QtCore import QObject
 
 
@@ -10,6 +11,7 @@ from PyQt5.QtCore import QObject
 
 
 class DatabaseConnector(QObject):
+
     def __init__(self):
         try:
             self.conn = psycopg2.connect("dbname='aact' "
@@ -23,14 +25,98 @@ class DatabaseConnector(QObject):
 
         self.cur = self.conn.cursor()
 
+    def count_place(self, parameters):
+        select_part = ["SELECT COUNT(*)"]
+        from_part = [" FROM studies"]
+        where_part = [" WHERE"]
+        add_and = False
+        group_part = [" GROUP BY"]
+        if "date-period" in parameters:
+            value = parameters["date-period"]
+            if add_and:
+                where_part.append(
+                    "AND studies.start_date <= '" + value + "'" + " AND studies.completion_date >= '" + value + "'")
+            else:
+                add_and = True
+                where_part.append(
+                    "studies.start_date <= '" + value + "'" + " AND studies.completion_date >= '" + value + "'")
+        if "disease" in parameters:
+            value = parameters["disease"]
+            from_part.append("INNER JOIN conditions on studies.nct_id = conditions.nct_id")
+            if add_and:
+                where_part.append("AND conditions.name = '" + value + "'")
+            else:
+                add_and = True
+                where_part.append("conditions.name = '" + value + "'")
+
+        if "phase" in parameters:
+            value = parameters["phase"]
+            if add_and:
+                where_part.append("AND studies.phase = '" + value + "'")
+            else:
+                add_and = True
+                where_part.append("studies.phase = '" + value + "'")
+        if "geo-country" in parameters:
+            value = parameters["geo-country"]
+            from_part.append("INNER JOIN facilities on studies.nct_id = facilities.nct_id")
+            if "status" in parameters:
+                value2 = parameters["status"]
+                if add_and:
+                    select_part.append(",facilities.country")
+                    where_part.append(
+                        "AND facilities.country = '" + value + "'" + " AND facilities.status = '" + value2 + "'")
+                    group_part.append("facilities.country")
+                else:
+                    add_and = True
+                    select_part.append(",facilities.country")
+                    where_part.append(
+                        "facilities.country = '" + value + "'" + " AND facilities.status = '" + value2 + "'")
+                    group_part.append("facilities.country")
+            else:
+                if add_and:
+                    select_part.append(",facilities.country")
+                    where_part.append("AND facilities.country = '" + value + "'")
+                    group_part.append("facilities.country")
+                else:
+                    add_and = True
+                    select_part.append(",facilities.country")
+                    where_part.append("facilities.country = '" + value + "'")
+                    group_part.append("facilities.country")
+        if "geo-city" in parameters:
+            value = parameters["geo-city"]
+            from_part.append("INNER JOIN facilities on studies.nct_id = facilities.nct_id")
+            if "status" in parameters:
+                value2 = parameters["status"]
+                if add_and:
+                    select_part.append(",facilities.city")
+                    where_part.append(
+                        "AND facilities.city = '" + value + "'" + " AND facilities.status = '" + value2 + "'")
+                    group_part.append("facilities.city")
+                else:
+                    select_part.append(",facilities.city")
+                    where_part.append("facilities.city = '" + value + "'" + " AND facilities.status = '" + value2 + "'")
+                    group_part.append("facilities.city")
+            else:
+                if add_and:
+                    select_part.append(",facilities.city")
+                    where_part.append("AND facilities.city = '" + value + "'")
+                    group_part.append("facilities.city")
+                else:
+                    select_part.append(",facilities.city")
+                    where_part.append("facilities.city = '" + value + "'")
+                    group_part.append("facilities.city")
+
+        print("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
+        self.cur.execute("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
+        result = self.cur.fetchall()
+        for line in result:
+            print(line)
+
     # This slot is called when response is received from the DialogFlow bot
     def dialogflow_response(self, resolved_query, parameters, contexts, action):
-        pass
 
-    def count(self, disease=None, location=None, location_modifier=None, phase=None,
-              status=None, time=None, time_modifier=None, drug=None):
-        pass
-
+        if (action == self.count_place):
+            self.count_place(parameters)
 
 if __name__ == '__main__':
     db = DatabaseConnector()
@@ -47,6 +133,17 @@ if __name__ == '__main__':
     #
 
     # may comment out, but don't delete
+
+    param = dict()
+    param["geo-country"] = "Germany"
+    param["phase"] = "Phase 1"
+    param["status"] = "Recruiting"
+    param["disease"] = "Melanoma"
+    param["date-period"] = str(datetime.date(2016, 6, 24))
+    # 1st question
+    db.count_place(param)
+
+'''
     # TODO: the missing entries are not handled yet
     querr = db.cur.execute("select distinct mesh_term from browse_conditions")  # what about names from conditions?
     rows = db.cur.fetchall()
@@ -68,3 +165,4 @@ if __name__ == '__main__':
     # TODO: see here
     for t in not_contained:
         print(t)
+'''
