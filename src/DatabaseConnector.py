@@ -10,7 +10,7 @@ from PyQt5.QtCore import QObject
 # Password:  aact
 
 
-class DatabaseConnector(QObject):
+class DatabaseConnector():
 
     def __init__(self):
         try:
@@ -26,20 +26,18 @@ class DatabaseConnector(QObject):
         self.cur = self.conn.cursor()
 
     def count_place(self, parameters):
+
         select_part = ["SELECT COUNT(*)"]
         from_part = [" FROM studies"]
         where_part = [" WHERE"]
         add_and = False
-        group_part = [" GROUP BY"]
         if "date-period" in parameters:
             value = parameters["date-period"]
             if add_and:
-                where_part.append(
-                    "AND studies.start_date <= '" + value + "'" + " AND studies.completion_date >= '" + value + "'")
+                where_part.append("AND studies.start_date <= '" + value + "'" + " AND studies.completion_date >= '" + value + "'")
             else:
                 add_and = True
-                where_part.append(
-                    "studies.start_date <= '" + value + "'" + " AND studies.completion_date >= '" + value + "'")
+                where_part.append("studies.start_date <= '" + value + "'" + " AND studies.completion_date >= '" + value + "'")
         if "disease" in parameters:
             value = parameters["disease"]
             from_part.append("INNER JOIN conditions on studies.nct_id = conditions.nct_id")
@@ -62,50 +60,77 @@ class DatabaseConnector(QObject):
             if "status" in parameters:
                 value2 = parameters["status"]
                 if add_and:
-                    select_part.append(",facilities.country")
-                    where_part.append(
-                        "AND facilities.country = '" + value + "'" + " AND facilities.status = '" + value2 + "'")
-                    group_part.append("facilities.country")
+                    where_part.append("AND facilities.country = '" + value + "'" + " AND facilities.status = '" + value2 + "'")
                 else:
                     add_and = True
-                    select_part.append(",facilities.country")
-                    where_part.append(
-                        "facilities.country = '" + value + "'" + " AND facilities.status = '" + value2 + "'")
-                    group_part.append("facilities.country")
+                    where_part.append("facilities.country = '" + value + "'" + " AND facilities.status = '" + value2 + "'")
             else:
                 if add_and:
-                    select_part.append(",facilities.country")
                     where_part.append("AND facilities.country = '" + value + "'")
-                    group_part.append("facilities.country")
                 else:
                     add_and = True
-                    select_part.append(",facilities.country")
                     where_part.append("facilities.country = '" + value + "'")
-                    group_part.append("facilities.country")
         if "geo-city" in parameters:
             value = parameters["geo-city"]
             from_part.append("INNER JOIN facilities on studies.nct_id = facilities.nct_id")
             if "status" in parameters:
                 value2 = parameters["status"]
                 if add_and:
-                    select_part.append(",facilities.city")
-                    where_part.append(
-                        "AND facilities.city = '" + value + "'" + " AND facilities.status = '" + value2 + "'")
-                    group_part.append("facilities.city")
+                    where_part.append("AND facilities.city = '" + value + "'" + " AND facilities.status = '" + value2 + "'")
                 else:
-                    select_part.append(",facilities.city")
                     where_part.append("facilities.city = '" + value + "'" + " AND facilities.status = '" + value2 + "'")
-                    group_part.append("facilities.city")
             else:
                 if add_and:
-                    select_part.append(",facilities.city")
                     where_part.append("AND facilities.city = '" + value + "'")
-                    group_part.append("facilities.city")
                 else:
-                    select_part.append(",facilities.city")
                     where_part.append("facilities.city = '" + value + "'")
-                    group_part.append("facilities.city")
 
+        print("".join(select_part) + " ".join(from_part) + " ".join(where_part) + ";")
+        self.cur.execute("".join(select_part) + " ".join(from_part) + " ".join(where_part) + ";")
+        result = self.cur.fetchall()
+        for line in result:
+            print(line)
+
+    def count_grouping(self, parameters):
+
+        select_part = ["SELECT COUNT(*)"]
+        from_part = [" FROM studies"]
+        where_part = [" WHERE"]
+        add_and = False
+        group_part = [" GROUP BY"]
+        if "date-period" in parameters:
+            value = parameters["date-period"]
+            if add_and:
+                where_part.append("AND studies.start_date <= '" + value + "'" + " AND studies.completion_date >= '" + value + "'")
+            else:
+                add_and = True
+                where_part.append("studies.start_date <= '" + value + "'" + " AND studies.completion_date >= '" + value + "'")
+        if "disease" in parameters:
+            value = parameters["disease"]
+            from_part.append("INNER JOIN conditions on studies.nct_id = conditions.nct_id")
+            if add_and:
+                where_part.append("AND conditions.name = '" + value + "'")
+            else:
+                add_and = True
+                where_part.append("conditions.name = '" + value + "'")
+
+        if "phase" in parameters:
+            value = parameters["phase"]
+            if add_and:
+                where_part.append("AND studies.phase = '" + value + "'")
+            else:
+                add_and = True
+                where_part.append("studies.phase = '" + value + "'")
+        if "grouping" in parameters:
+            select_part.append(",facilities.country")
+            from_part.append("INNER JOIN facilities on studies.nct_id = facilities.nct_id")
+            group_part.append("facilities.country")
+            if "status" in parameters:
+                value2 = parameters["status"]
+                if add_and:
+                    where_part.append("AND facilities.status = '" + value2 + "'")
+                else:
+                    where_part.append("facilities.status = '" + value2 + "'")
         print("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
         self.cur.execute("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
         result = self.cur.fetchall()
@@ -115,10 +140,13 @@ class DatabaseConnector(QObject):
     # This slot is called when response is received from the DialogFlow bot
     def dialogflow_response(self, resolved_query, parameters, contexts, action):
 
-        if (action == self.count_place):
+        if action == "count_place":
             self.count_place(parameters)
+        elif action == "count_grouping":
+            self.count_grouping(parameters)
 
 if __name__ == '__main__':
+
     db = DatabaseConnector()
     #
     # # 1st question
@@ -140,6 +168,13 @@ if __name__ == '__main__':
     param["status"] = "Recruiting"
     param["disease"] = "Melanoma"
     param["date-period"] = str(datetime.date(2016, 6, 24))
+    param2 = dict()
+    param2["grouping"] = "Each Country"
+    param2["phase"] = "Phase 1"
+    param2["status"] = "Recruiting"
+    param2["disease"] = "Melanoma"
+    param2["date-period"] = str(datetime.date(2016, 6, 24))
+    db.count_grouping(param2)
     # 1st question
     db.count_place(param)
 
