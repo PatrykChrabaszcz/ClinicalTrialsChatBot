@@ -16,7 +16,7 @@ class TreeWidget(QTreeView):
         super().__init__(parent)
         self.name = name
 
-        self.model = TreeModel("resources/%s_num2name.p" % name, "")
+        self.model = TreeModel("resources/%s_num2name.p" % name, "", self)
 
         with open("resources/%s_num2name.p" % name, "rb") as f:
             self.num2name = pickle.load(f)

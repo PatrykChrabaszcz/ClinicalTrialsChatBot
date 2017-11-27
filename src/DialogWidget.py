@@ -8,7 +8,7 @@ class DialogWidget(QTextEdit):
         self.setMinimumHeight(150)
         self.setReadOnly(True)
 
-        self.user_text("How many Hepatitis C studies (Phase 2) are active in each country")
+        self.user_text("How many Hepatitis C studies (Phase 2) are in each country")
         self.bot_text("I think it's 20")
 
     def user_text(self, message):
