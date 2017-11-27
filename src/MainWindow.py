@@ -6,7 +6,7 @@ from src.InputConsole import InputConsole
 from src.DialogFlow import DialogFlow
 from src.TreeWidget import TreeWidget
 from src.ChartWidget import ChartWidget
-from mock.DatabaseConnector import DatabaseConnector
+from src.DatabaseConnector import DatabaseConnector
 
 
 class MainWindow(QMainWindow):

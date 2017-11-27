@@ -1,6 +1,6 @@
 import psycopg2
 import datetime
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, pyqtSignal
 
 
 # Hostname:  aact-prod.cr4nrslb1lw7.us-east-1.rds.amazonaws.com
@@ -10,9 +10,10 @@ from PyQt5.QtCore import QObject
 # Password:  aact
 
 
-class DatabaseConnector():
-
+class DatabaseConnector(QObject):
+    database_response = pyqtSignal(dict)
     def __init__(self):
+        super().__init__()
         try:
             self.conn = psycopg2.connect("dbname='aact' "
                                          "user='aact' "
@@ -88,6 +89,10 @@ class DatabaseConnector():
         print("".join(select_part) + " ".join(from_part) + " ".join(where_part) + ";")
         self.cur.execute("".join(select_part) + " ".join(from_part) + " ".join(where_part) + ";")
         result = self.cur.fetchall()
+
+        print(result)
+        self.database_response.emit(result)
+
         for line in result:
             print(line)
 
@@ -134,6 +139,9 @@ class DatabaseConnector():
         print("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
         self.cur.execute("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
         result = self.cur.fetchall()
+
+        print(result)
+        self.database_response.emit(result)
         for line in result:
             print(line)
 
