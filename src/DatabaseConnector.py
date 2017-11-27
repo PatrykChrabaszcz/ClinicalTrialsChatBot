@@ -140,6 +140,7 @@ class DatabaseConnector():
     # This slot is called when response is received from the DialogFlow bot
     def dialogflow_response(self, resolved_query, parameters, contexts, action):
         print(action)
+        print(parameters)
         if action == "count_place":
             self.count_place(parameters)
         elif action == "count_grouping":

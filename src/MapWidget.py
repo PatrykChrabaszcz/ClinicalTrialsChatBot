@@ -24,8 +24,10 @@ class MapWidget(QWebEngineView):
         html = self.map.get_html()
         html = "".join(html)
 
-
         self.setHtml(html)
+
+    def database_response(self, response):
+        print('')
 
     def update(self):
         pass
