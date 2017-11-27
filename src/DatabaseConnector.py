@@ -30,7 +30,7 @@ class DatabaseConnector(QObject):
 
     def count_place(self, parameters):
 
-        select_part = ["SELECT COUNT(*)"]
+        select_part = ["SELECT COUNT(DISTINCT studies.nct_id)"]
         from_part = [" FROM studies"]
         where_part = [" WHERE"]
         add_and = False
@@ -91,6 +91,7 @@ class DatabaseConnector(QObject):
         print("".join(select_part) + " ".join(from_part) + " ".join(where_part) + ";")
         self.cur.execute("".join(select_part) + " ".join(from_part) + " ".join(where_part) + ";")
         result = self.cur.fetchone()
+        print(result)
         count = result[0]
         parameters["result"] = count
         self.database_response.emit(parameters)
@@ -98,7 +99,7 @@ class DatabaseConnector(QObject):
 
     def count_grouping(self, parameters):
 
-        select_part = ["SELECT COUNT(*)"]
+        select_part = ["SELECT COUNT(DISTINCT studies.nct_id)"]
         from_part = [" FROM studies"]
         where_part = [" WHERE"]
         add_and = False
@@ -139,7 +140,7 @@ class DatabaseConnector(QObject):
         print("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
         self.cur.execute("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
         result = self.cur.fetchall()
-
+        print(result)
         count_results = {}
         for value, location in result:
             count_results[location] = value
@@ -167,6 +168,10 @@ class DatabaseConnector(QObject):
 if __name__ == '__main__':
 
     db = DatabaseConnector()
+    #db.cur.execute("SELECT facilities.status FROM studies INNER JOIN facilities on studies.nct_id = facilities.nct_id")
+    #result = db.cur.fetchmany(150)
+    #for line in result:
+    #    print(line)
     #
     # # 1st question
     # result = db.count(disease='Hepatitis C', location=None, location_modifier='each country', phase='Phase 2',
@@ -183,14 +188,14 @@ if __name__ == '__main__':
 
     param = dict()
     param["geo-country"] = "Germany"
-    param["phase"] = "Phase 1"
-    param["disease"] = "Melanoma"
+    #param["phase"] = "Recruiting"
+    param["disease"] = "Hepatitis C"
 #   param["date-period"] = str(datetime.date(2016, 6, 24))
     param2 = dict()
     param2["grouping"] = "Each Country"
-    param2["phase"] = "Phase 1"
-#   param2["status"] = "Done"
-    param2["disease"] = "Melanoma"
+    #param2["phase"] = "Phase 1"
+    #param2["status"] = "Active, Not Recruiting"
+    param2["disease"] = "Hepatitis C"
 #   param2["date-period"] = str(datetime.date(2016, 6, 24))
     # 1st question
     test = db.count_grouping(param2)
