@@ -1,6 +1,6 @@
 import psycopg2
 import datetime
-from PyQt5.QtCore import QObject
+from PyQt5.QtCore import QObject, pyqtSignal
 
 
 # Hostname:  aact-prod.cr4nrslb1lw7.us-east-1.rds.amazonaws.com
@@ -10,9 +10,12 @@ from PyQt5.QtCore import QObject
 # Password:  aact
 
 
-class DatabaseConnector():
+class DatabaseConnector(QObject):
 
-    def __init__(self):
+    database_response = pyqtSignal(dict)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
         try:
             self.conn = psycopg2.connect("dbname='aact' "
                                          "user='aact' "
@@ -25,7 +28,7 @@ class DatabaseConnector():
 
         self.cur = self.conn.cursor()
 
-    def count_place(self, parameters):
+    def count_place(self, action, parameters):
 
         select_part = ["SELECT COUNT(*)"]
         from_part = [" FROM studies"]
@@ -87,11 +90,15 @@ class DatabaseConnector():
 
         print("".join(select_part) + " ".join(from_part) + " ".join(where_part) + ";")
         self.cur.execute("".join(select_part) + " ".join(from_part) + " ".join(where_part) + ";")
-        result = self.cur.fetchall()
-        for line in result:
-            print(line)
+        result = self.cur.fetchone()
+        count = result[0]
+        parameters["action"] = action
+        parameters["result"] = count
+        self.database_response.emit(parameters)
+        return parameters
 
-    def count_grouping(self, parameters):
+
+    def count_grouping(self, action, parameters):
 
         select_part = ["SELECT COUNT(*)"]
         from_part = [" FROM studies"]
@@ -134,17 +141,24 @@ class DatabaseConnector():
         print("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
         self.cur.execute("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
         result = self.cur.fetchall()
-        for line in result:
-            print(line)
+
+        count_results = {}
+        for value, location in result:
+            count_results[location] = value
+
+        parameters["action"] = action
+        parameters["result"] = count_results
+        self.database_response.emit(parameters)
+        return parameters
 
     # This slot is called when response is received from the DialogFlow bot
     def dialogflow_response(self, resolved_query, parameters, contexts, action):
 
         param = self.clear_empty_param(parameters)
         if action == "count_place":
-            self.count_place(param)
+            self.count_place(action, param)
         elif action == "count_grouping":
-            self.count_grouping(param)
+            self.count_grouping(action, param)
 
 
     def clear_empty_param(self, parameters):
@@ -172,19 +186,25 @@ if __name__ == '__main__':
 
     param = dict()
     param["geo-country"] = "Germany"
-    param["phase"] = "Phase 2"
-    param["status"] = "Active"
-    param["disease"] = "Hepatitis C"
+    param["phase"] = "Phase 1"
+    param["disease"] = "Melanoma"
     #param["date-period"] = str(datetime.date(2016, 6, 24))
     param2 = dict()
     param2["grouping"] = "Each Country"
-    param2["phase"] = "Phase 2"
-    param2["status"] = "Active"
-    param2["disease"] = "Hepatitis C"
+    param2["phase"] = "Phase 1"
+    #param2["status"] = "Done"
+    param2["disease"] = "Melanoma"
     #param2["date-period"] = str(datetime.date(2016, 6, 24))
-    db.count_grouping(param2)
     # 1st question
-    db.count_place(param)
+    test = db.count_grouping("count_grouping", param2)
+    for key in test:
+        print(key)
+        print(test[key])
+    # 2st question
+    test2 = db.count_place("count_place", param)
+    for key in test2:
+        print(key)
+        print(test2[key])
 
 '''
     # TODO: the missing entries are not handled yet
