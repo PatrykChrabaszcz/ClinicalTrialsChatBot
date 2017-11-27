@@ -10,8 +10,6 @@ class ChartWidget(QChartView):
         self.setRenderHint(QPainter.Antialiasing)
         self.setDragMode(QChartView.ScrollHandDrag)
 
-
-
     def database_response(self, response):
         action = response['action']
         status = response['status'] if 'status' in response.keys() else None
@@ -24,30 +22,29 @@ class ChartWidget(QChartView):
         title += 'Location: %s, ' % location if location is not None else ''
 
         if action in ['count_place']:
-            self.display_single_value(response['result'])
+            self.display_single_value(title, response['result'])
 
         elif action in ['compare_cities', 'compare_countries', 'compare_diseases', 'compare_phases',
                         'count_place', 'count_grouping']:
             self.display_compare_lvl_1(title, response['result'])
 
-    def display_single_value(self, results):
-        chart = QChart()
-        chart.setAnimationOptions(QChart.SeriesAnimations)
-        chart.setTitle(title)
-
-        chart.removeAllSeries()
-        series = QPieSeries()
-        for key, value in response.items():
-            series.append("%s (%d)" % (key, value), value)
-
-        for slice in series.slices():
-            slice.setLabelVisible()
-
-        chart.addSeries(series)
-        self.setChart(chart)
-
-        chart.legend().hide()
-        pass
+    def display_single_value(self, title, results):
+        # chart = QChart()
+        # chart.setAnimationOptions(QChart.SeriesAnimations)
+        # chart.setTitle(title)
+        #
+        # chart.removeAllSeries()
+        # series = QPieSeries()
+        print(results)
+        #
+        # for slice in series.slices():
+        #     slice.setLabelVisible()
+        #
+        # chart.addSeries(series)
+        # self.setChart(chart)
+        #
+        # chart.legend().hide()
+        # pass
 
     def display_compare_lvl_1(self, title, results):
         chart = QChart()

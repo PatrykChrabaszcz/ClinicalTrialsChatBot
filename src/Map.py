@@ -64,3 +64,19 @@ class Map(gmplot.GoogleMapPlotter):
 
         return lines
 
+    # We had to coment out img
+    # We added Label
+    def write_point(self, f, lat, lon, color, title):
+        print(f, lat, lon, color, title)
+        f.write('\t\tvar latlng = new google.maps.LatLng(%f, %f);\n' %
+                (lat, lon))
+        f.write('\t\tvar img = new google.maps.MarkerImage(\'%s\');\n' %
+                (self.coloricon % color))
+        f.write('\t\tvar marker = new google.maps.Marker({\n')
+        f.write('\t\ttitle: "%s",\n' % title)
+        f.write('\t\tlabel: {text: "%s", fontSize: "10px"},\n' % title)
+        #f.write('\t\ticon: img,\n')
+        f.write('\t\tposition: latlng\n')
+        f.write('\t\t});\n')
+        f.write('\t\tmarker.setMap(map);\n')
+        f.write('\n')
