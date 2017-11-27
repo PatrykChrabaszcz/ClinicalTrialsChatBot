@@ -6,12 +6,15 @@ from src.InputConsole import InputConsole
 from src.DialogFlow import DialogFlow
 from src.TreeWidget import TreeWidget
 from src.ChartWidget import ChartWidget
-from src.DatabaseConnector import DatabaseConnector
+from mock.DatabaseConnector import DatabaseConnector
+
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.l_h = QHBoxLayout()
+
+        self.setCentralWidget(QWidget(self))
+        self.l_h = QHBoxLayout(self.centralWidget())
 
         self.l_h_left = QHBoxLayout()
         self.l_v_middle = QVBoxLayout()
@@ -36,9 +39,6 @@ class MainWindow(QMainWindow):
         self.drug_widget = TreeWidget("drug")
         self.tab_widget.addTab(self.drug_widget, 'Drug')
 
-        self.setCentralWidget(QWidget())
-        self.centralWidget().setLayout(self.l_h)
-
         self.dialog_widget = DialogWidget()
         self.l_v_right.addWidget(self.dialog_widget)
 
@@ -47,12 +47,22 @@ class MainWindow(QMainWindow):
 
         self.dialogflow = DialogFlow()
 
-        self.input_console.message_entered.connect(self.dialogflow.send_request)
+        self.input_console.message_entered_signal.connect(self.dialog_widget.user_message_entered)
+        self.input_console.message_entered_signal.connect(self.dialogflow.send_request)
 
         self.database_connector = DatabaseConnector()
 
-        self.dialogflow.response_received.connect(self.dialog_widget.dialogflow_response)
-        self.dialogflow.response_received.connect(self.disease_widget.dialogflow_response)
-        self.dialogflow.response_received.connect(self.drug_widget.dialogflow_response)
-        self.dialogflow.response_received.connect(self.database_connector.dialogflow_response)
+        self.dialogflow.speak.connect(self.dialog_widget.bot_message_entered)
+
+        # Highlight diseases and drugs for which we search in the database
+        self.dialogflow.query_database.connect(self.disease_widget.dialogflow_response)
+        self.dialogflow.query_database.connect(self.drug_widget.dialogflow_response)
+
+        # Query the database
+        self.dialogflow.query_database.connect(self.database_connector.dialogflow_response)
+
+        self.database_connector.database_response.connect(self.map_widget.database_response)
+
+        self.disease_widget.element_selected.connect(self.input_console.append_text)
+        self.drug_widget.element_selected.connect(self.input_console.append_text)
 

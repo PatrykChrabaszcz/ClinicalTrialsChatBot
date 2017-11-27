@@ -2,8 +2,8 @@ from PyQt5.QtChart import QChart, QChartView, QBarSet, QBarSeries, QBarCategoryA
 
 
 class ChartWidget(QChartView):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
 
         self.chart = QChart()
         self.chart.setTitle("Simple barchart example")

@@ -13,10 +13,16 @@ except ImportError:
 
 
 class DialogFlow(QObject):
-    response_received = pyqtSignal(['QString', dict, list, 'QString'])
+    # Emitted when DialogFlow wants to tell us something
+    speak = pyqtSignal(['QString'])
 
-    def __init__(self):
-        super().__init__()
+    # Emitted when DialogFlow wants to query database
+    # User request was successfully recognized
+
+    query_database = pyqtSignal(['QString', dict, list, 'QString'])
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.ai = apiai.ApiAI('cce9915cc7f14a41b167f3251581c160')
 
     def send_request(self, message):
@@ -31,7 +37,8 @@ class DialogFlow(QObject):
         contexts = result['contexts']
         action = result['action']
 
-        self.response_received.emit(resolved_query, parameters, contexts, action)
+        self.speak.emit('Will query the database')
+        self.query_database.emit(resolved_query, parameters, contexts, action)
 
 if __name__ == '__main__':
     df = DialogFlow()

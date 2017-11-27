@@ -45,8 +45,8 @@ class TreeNode:
 
 # Will load tree model from dictionary and populate it
 class TreeModel(QAbstractItemModel):
-    def __init__(self, filepath, name):
-        super().__init__()
+    def __init__(self, filepath, name, parent=None):
+        super().__init__(parent)
 
         with open(filepath, 'rb') as f:
             data = pickle.load(f)
@@ -99,7 +99,7 @@ class TreeModel(QAbstractItemModel):
     def columnCount(self, index):
         return 1
 
-    def data(self, index, role):
+    def data(self, index, role=Qt.DisplayRole):
         if not index.isValid():
             return None
         node = index.internalPointer()

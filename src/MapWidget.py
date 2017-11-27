@@ -8,8 +8,8 @@ from src.Map import Map
 
 
 class MapWidget(QWebEngineView):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.api_key = "AIzaSyD1iK3XcJHRDowNirQ06qJiGZz-4bOJw7k"
         self.map = Map.from_geocode('Freiburg', zoom=4)
         self.map.apikey = self.api_key
@@ -24,8 +24,10 @@ class MapWidget(QWebEngineView):
         html = self.map.get_html()
         html = "".join(html)
 
-
         self.setHtml(html)
+
+    def database_response(self, response):
+        print('')
 
     def update(self):
         pass

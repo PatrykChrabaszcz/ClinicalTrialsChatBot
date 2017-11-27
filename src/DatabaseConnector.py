@@ -97,7 +97,6 @@ class DatabaseConnector(QObject):
         self.database_response.emit(parameters)
         return parameters
 
-
     def count_grouping(self, action, parameters):
 
         select_part = ["SELECT COUNT(*)"]
@@ -153,7 +152,6 @@ class DatabaseConnector(QObject):
 
     # This slot is called when response is received from the DialogFlow bot
     def dialogflow_response(self, resolved_query, parameters, contexts, action):
-
         param = self.clear_empty_param(parameters)
         if action == "count_place":
             self.count_place(action, param)
