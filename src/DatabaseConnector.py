@@ -28,7 +28,7 @@ class DatabaseConnector(QObject):
 
         self.cur = self.conn.cursor()
 
-    def count_place(self, action, parameters):
+    def count_place(self, parameters):
 
         select_part = ["SELECT COUNT(*)"]
         from_part = [" FROM studies"]
@@ -92,12 +92,11 @@ class DatabaseConnector(QObject):
         self.cur.execute("".join(select_part) + " ".join(from_part) + " ".join(where_part) + ";")
         result = self.cur.fetchone()
         count = result[0]
-        parameters["action"] = action
         parameters["result"] = count
         self.database_response.emit(parameters)
         return parameters
 
-    def count_grouping(self, action, parameters):
+    def count_grouping(self, parameters):
 
         select_part = ["SELECT COUNT(*)"]
         from_part = [" FROM studies"]
@@ -145,7 +144,6 @@ class DatabaseConnector(QObject):
         for value, location in result:
             count_results[location] = value
 
-        parameters["action"] = action
         parameters["result"] = count_results
         self.database_response.emit(parameters)
         return parameters
@@ -153,10 +151,11 @@ class DatabaseConnector(QObject):
     # This slot is called when response is received from the DialogFlow bot
     def dialogflow_response(self, resolved_query, parameters, contexts, action):
         param = self.clear_empty_param(parameters)
+        param["action"] = action
         if action == "count_place":
-            self.count_place(action, param)
+            self.count_place(param)
         elif action == "count_grouping":
-            self.count_grouping(action, param)
+            self.count_grouping(param)
 
 
     def clear_empty_param(self, parameters):
@@ -186,20 +185,20 @@ if __name__ == '__main__':
     param["geo-country"] = "Germany"
     param["phase"] = "Phase 1"
     param["disease"] = "Melanoma"
-    #param["date-period"] = str(datetime.date(2016, 6, 24))
+#   param["date-period"] = str(datetime.date(2016, 6, 24))
     param2 = dict()
     param2["grouping"] = "Each Country"
     param2["phase"] = "Phase 1"
-    #param2["status"] = "Done"
+#   param2["status"] = "Done"
     param2["disease"] = "Melanoma"
-    #param2["date-period"] = str(datetime.date(2016, 6, 24))
+#   param2["date-period"] = str(datetime.date(2016, 6, 24))
     # 1st question
-    test = db.count_grouping("count_grouping", param2)
+    test = db.count_grouping(param2)
     for key in test:
         print(key)
         print(test[key])
     # 2st question
-    test2 = db.count_place("count_place", param)
+    test2 = db.count_place(param)
     for key in test2:
         print(key)
         print(test2[key])
