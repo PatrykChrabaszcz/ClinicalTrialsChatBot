@@ -18,7 +18,8 @@ def get_subcategories(name, search_dict):
 
     _get_subcategories(name, search_dict, result, append=False)
 
-    return result
+    # Remove duplicates
+    return list(set(result))
 
 
 if __name__ == "__main__":
