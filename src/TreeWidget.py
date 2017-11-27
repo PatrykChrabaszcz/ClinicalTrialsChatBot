@@ -12,8 +12,8 @@ class TreeWidget(QTreeView):
 
     element_selected = pyqtSignal('QString')
 
-    def __init__(self, name):
-        super().__init__()
+    def __init__(self, name, parent=None):
+        super().__init__(parent)
         self.name = name
 
         self.model = TreeModel("resources/%s_num2name.p" % name, "")

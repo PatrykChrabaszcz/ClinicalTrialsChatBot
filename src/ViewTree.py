@@ -45,8 +45,8 @@ class TreeNode:
 
 # Will load tree model from dictionary and populate it
 class TreeModel(QAbstractItemModel):
-    def __init__(self, filepath, name):
-        super().__init__()
+    def __init__(self, filepath, name, parent=None):
+        super().__init__(parent)
 
         with open(filepath, 'rb') as f:
             data = pickle.load(f)

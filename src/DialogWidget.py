@@ -3,8 +3,8 @@ from PyQt5.Qt import QColor
 
 
 class DialogWidget(QTextEdit):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, parent=None):
+        super().__init__(parent)
         self.setMinimumHeight(150)
         self.setReadOnly(True)
 

@@ -1,12 +1,14 @@
 from PyQt5.QtWidgets import QLineEdit
-from PyQt5.QtCore import QObject, pyqtSignal
+from PyQt5.QtCore import pyqtSignal
 
 
 class InputConsole(QLineEdit):
+
     message_entered_signal = pyqtSignal('QString')
 
     def __init__(self, parent=None):
         super().__init__(parent)
+
         self.returnPressed.connect(self.message_changed)
 
     def message_changed(self):

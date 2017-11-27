@@ -11,9 +11,11 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 
 class DatabaseConnector(QObject):
+
     database_response = pyqtSignal(dict)
-    def __init__(self):
-        super().__init__()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
         try:
             self.conn = psycopg2.connect("dbname='aact' "
                                          "user='aact' "
