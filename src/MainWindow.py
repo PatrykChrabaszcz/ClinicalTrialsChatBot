@@ -6,6 +6,7 @@ from src.InputConsole import InputConsole
 from src.DialogFlow import DialogFlow
 from src.TreeWidget import TreeWidget
 from src.ChartWidget import ChartWidget
+from src.DatabaseConnector import DatabaseConnector
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -48,7 +49,10 @@ class MainWindow(QMainWindow):
 
         self.input_console.message_entered.connect(self.dialogflow.send_request)
 
+        self.database_connector = DatabaseConnector()
+
         self.dialogflow.response_received.connect(self.dialog_widget.dialogflow_response)
         self.dialogflow.response_received.connect(self.disease_widget.dialogflow_response)
         self.dialogflow.response_received.connect(self.drug_widget.dialogflow_response)
+        self.dialogflow.response_received.connect(self.database_connector.dialogflow_response)
 
