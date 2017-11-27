@@ -139,11 +139,19 @@ class DatabaseConnector():
 
     # This slot is called when response is received from the DialogFlow bot
     def dialogflow_response(self, resolved_query, parameters, contexts, action):
-        print(action)
+
+        param = self.clear_empty_param(parameters)
         if action == "count_place":
-            self.count_place(parameters)
+            self.count_place(param)
         elif action == "count_grouping":
-            self.count_grouping(parameters)
+            self.count_grouping(param)
+
+
+    def clear_empty_param(self, parameters):
+        for key, value in list(parameters.items()):
+            if value == "":
+                del parameters[key]
+        return parameters
 
 if __name__ == '__main__':
 
@@ -164,16 +172,16 @@ if __name__ == '__main__':
 
     param = dict()
     param["geo-country"] = "Germany"
-    param["phase"] = "Phase 1"
-    param["status"] = "Recruiting"
-    param["disease"] = "Melanoma"
-    param["date-period"] = str(datetime.date(2016, 6, 24))
+    param["phase"] = "Phase 2"
+    param["status"] = "Active"
+    param["disease"] = "Hepatitis C"
+    #param["date-period"] = str(datetime.date(2016, 6, 24))
     param2 = dict()
     param2["grouping"] = "Each Country"
-    param2["phase"] = "Phase 1"
-    param2["status"] = "Recruiting"
-    param2["disease"] = "Melanoma"
-    param2["date-period"] = str(datetime.date(2016, 6, 24))
+    param2["phase"] = "Phase 2"
+    param2["status"] = "Active"
+    param2["disease"] = "Hepatitis C"
+    #param2["date-period"] = str(datetime.date(2016, 6, 24))
     db.count_grouping(param2)
     # 1st question
     db.count_place(param)
