@@ -26,7 +26,7 @@ class MapWidget(QWebEngineView):
 
         self.setHtml(html)
 
-    def database_response(self, response):
+    def display_processed_request(self, response):
         print(response)
         status = response['status'] if 'status' in response.keys() else None
         compare_key = [s for s in response.keys() if 'compare' in s]

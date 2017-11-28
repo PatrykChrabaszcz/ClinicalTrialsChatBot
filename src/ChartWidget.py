@@ -10,16 +10,18 @@ class ChartWidget(QChartView):
         self.setRenderHint(QPainter.Antialiasing)
         self.setDragMode(QChartView.ScrollHandDrag)
 
-    def database_response(self, response):
-        action = response['action']
-        status = response['status'] if 'status' in response.keys() else None
-        location = response['location'] if 'location' in response.keys() else None
-        disease = response['disease'] if 'disease' in response.keys() else None
+        self.title_font = QFont()
+        self.title_font.setPixelSize(18)
 
-        title = ''
-        title += 'Disease: %s, ' % disease if disease is not None else ''
-        title += 'Status: %s, ' % status if status is not None else ''
-        title += 'Location: %s, ' % location if location is not None else ''
+    def display_processed_request(self, response):
+        action = response['action']
+
+        keys = ['disease', 'phase', 'status', 'location']
+
+        title = ["%s: %s" % (key.title(), response[key]) for key in keys if key in response.keys()]
+        title = ' | '.join(title)
+
+        print(action)
 
         if action in ['count_place']:
             self.display_single_value(title, response['result'])
@@ -29,22 +31,15 @@ class ChartWidget(QChartView):
             self.display_compare_lvl_1(title, response['result'])
 
     def display_single_value(self, title, results):
-        # chart = QChart()
-        # chart.setAnimationOptions(QChart.SeriesAnimations)
-        # chart.setTitle(title)
-        #
-        # chart.removeAllSeries()
-        # series = QPieSeries()
-        print(results)
-        #
-        # for slice in series.slices():
-        #     slice.setLabelVisible()
-        #
-        # chart.addSeries(series)
-        # self.setChart(chart)
-        #
-        # chart.legend().hide()
-        # pass
+        series = QPieSeries()
+        series.append("%s" % results, results)
+
+        chart = QChart()
+        chart.addSeries(series)
+        chart.setTitleFont(self.title_font)
+        chart.setTitle(title)
+
+        self.setChart(chart)
 
     def display_compare_lvl_1(self, title, results):
         chart = QChart()

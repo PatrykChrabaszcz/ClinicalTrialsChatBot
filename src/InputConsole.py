@@ -1,9 +1,17 @@
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtCore import pyqtSignal, Qt
-from PyQt5.QtGui import QKeySequence, QKeyEvent
+from PyQt5.QtGui import QKeySequence
 
 
+# Widget used by the user to enter queries to the system
 class InputConsole(QLineEdit):
+    # Signal emitted when user submits a new query
+    # This should be sent to the DialogFlow Bot
+    user_message_entered_signal = pyqtSignal('QString')
+
+    # Simple class to handle message history,
+    # User can use Up/Down Arrow keys to search for
+    # commands already entered in this session
     class MessageHistory:
         def __init__(self):
             self.history = []
@@ -29,29 +37,20 @@ class InputConsole(QLineEdit):
             self.history.append(message)
             self.reset()
 
-    message_entered_signal = pyqtSignal('QString')
-
     def __init__(self, parent=None):
         super().__init__(parent)
 
         self.history = InputConsole.MessageHistory()
         self.returnPressed.connect(self.message_changed)
+        self.setPlaceholderText("Please insert your question.")
 
     def message_changed(self):
         message = self.text()
         if message is "":
             return
-
         self.setText("")
-        self.message_entered_signal.emit(message)
+        self.user_message_entered_signal.emit(message)
         self.history.append_message(message)
-
-    def append_text(self, text):
-        curr_text = self.text()
-        while len(curr_text) and curr_text[-1] == " ":
-            curr_text = curr_text[:-1]
-
-        self.setText("%s %s" % (curr_text, text))
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_Up:
@@ -63,4 +62,5 @@ class InputConsole(QLineEdit):
             self.setText("")
         else:
             super().keyPressEvent(event)
+
 

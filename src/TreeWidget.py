@@ -63,7 +63,7 @@ class TreeWidget(QTreeView):
         self.selectionModel().clearSelection()
         self.collapseAll()
 
-    def dialogflow_response(self, resolved_query, parameters, contexts, action):
+    def highlight_bot_request(self, resolved_query, parameters, contexts, action):
         self.unselect_all()
         names = []
         for key, value in parameters.items():

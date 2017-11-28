@@ -1,0 +1,11 @@
+How many Hepatitis C studies (Phase 2) are in Germany and France
+    TODO: Implement database query for "compare_countries"
+
+How many Hepatitis C studies (Phase 2) are in United States
+    TODO: Change entity for United States to match the one from the database, right now it returns 0
+
+How many Hepatitis E studies  are in China compared to Spain
+    TODO: Right now it understands it as "I understood your request as counting Hepatitis E studies in China"
+
+How many Hepatitis C studies (Phase 2) are in different regions of France
+    TODO: Bot responds "I understood your request as counting Hepatitis C studies (Phase 2) in each region. Querying the database…" France is missing
