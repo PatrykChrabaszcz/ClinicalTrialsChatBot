@@ -57,8 +57,11 @@ class DialogFlow(QObject):
                 self.bot_speak_signal.emit(result['fulfillment']['speech'])
                 # TODO: anything else needed?
             else:
-                self.bot_speak_signal.emit(result['fulfillment']['speech'] + ' Querying the database…')
-                self.bot_request_signal.emit(resolved_query, parameters, contexts, action)
+                if action != 'input.unknown':
+                    self.bot_speak_signal.emit(result['fulfillment']['speech'] + ' Querying the database…')
+                    self.bot_request_signal.emit(resolved_query, parameters, contexts, action)
+                else:
+                    self.bot_speak_signal.emit(result['fulfillment']['speech'])
 
 
 if __name__ == '__main__':
