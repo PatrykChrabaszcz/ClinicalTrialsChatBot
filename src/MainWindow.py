@@ -8,6 +8,8 @@ from src.TreeWidget import TreeWidget
 from src.ChartWidget import ChartWidget
 from src.DatabaseConnector import DatabaseConnector
 from src.HintWindow import HintWindow
+from src.LogWindow import logger, LogWindow
+
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -77,10 +79,16 @@ class MainWindow(QMainWindow):
 
         # Add additional actions
         self.file_menu = self.menuBar().addMenu('File')
-        self.open_log_action = QAction('Open Log')
-        self.file_menu.addAction(self.open_log_action)
 
-        self.open_hints_action = QAction('Tips and Hints')
+        self.log_window = LogWindow()
+        self.open_log_action = QAction('Open Log')
+        self.open_log_action.triggered.connect(self.log_window.show)
+        self.file_menu.addAction(self.open_log_action)
+        logger.set_log_window(self.log_window)
+
         self.hint_window = HintWindow()
+        self.open_hints_action = QAction('Tips and Hints')
         self.open_hints_action.triggered.connect(self.hint_window.show)
         self.file_menu.addAction(self.open_hints_action)
+
+        logger.log('Start application')

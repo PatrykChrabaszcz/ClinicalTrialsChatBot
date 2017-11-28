@@ -1,7 +1,7 @@
 from PyQt5.QtChart import QChart, QChartView, QBarSet, QBarSeries, QBarCategoryAxis, QPieSeries, QHorizontalBarSeries
 from PyQt5.QtGui import QPainter, QFont
 from PyQt5.QtWidgets import QSizePolicy
-from PyQt5.QtCore import QSize, Qt
+from src.LogWindow import logger
 
 
 class ChartWidget(QChartView):
@@ -21,7 +21,7 @@ class ChartWidget(QChartView):
         title = ["%s: %s" % (key.title(), response[key]) for key in keys if key in response.keys()]
         title = ' | '.join(title)
 
-        print(action)
+        logger.log('ChartWidget: Action to display %s' % action)
 
         if action in ['count_place']:
             self.display_single_value(title, response['result'])
