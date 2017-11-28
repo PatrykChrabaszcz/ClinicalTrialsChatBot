@@ -10,30 +10,48 @@ from src.Map import Map
 class MapWidget(QWebEngineView):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.api_key = "AIzaSyD1iK3XcJHRDowNirQ06qJiGZz-4bOJw7k"
-        self.map = Map.from_geocode('Freiburg', zoom=4)
-        self.map.apikey = self.api_key
+        self.location_cache = {}
+        self.map = None
+        self.clear_map()
 
-        #code = self.map.geocode('Freiburg')
-        #self.map.heatmap([code[0]], [code[1]], 1, 10)
+    def get_location(self, location_name):
+        try:
+            location = self.location_cache[location_name]
+        except KeyError:
+            location = self.map.geocode(location_name)
+            self.location_cache[location_name] = location
 
-        code = self.map.geocode('Germany')
-        #self.map.heatmap([code[0]], [code[1]], 1, 50)
-        self.map.marker(code[0], code[1], title="500")
-
-        html = self.map.get_html()
-        html = "".join(html)
-
-        self.setHtml(html)
+        return location
 
     def display_processed_request(self, response):
-        print(response)
-        status = response['status'] if 'status' in response.keys() else None
-        compare_key = [s for s in response.keys() if 'compare' in s]
+        self.clear_map()
+        action = response['action']
 
-        for key in compare_key:
-            print(key)
+        if action in ['count_place']:
 
+            location_name = response['geo-country'] if 'geo-country' in response.keys() else None
+            location_name = response['geo-city'] if 'geo-city' in response.keys() else location_name
 
-    def update(self):
-        pass
+            self.display_location(location_name, response['result'])
+
+        elif action in ['count_grouping']:
+            self.display_locations(response['result'])
+
+        else:
+            self.clear_map()
+
+    def clear_map(self):
+        self.map = Map(60, 5, zoom=4)
+        html = self.map.get_html()
+        self.setHtml(html)
+
+    def display_location(self, location_name, result):
+        self.map.marker(*self.get_location(location_name), color='red', title=result)
+        html = self.map.get_html()
+        self.setHtml(html)
+
+    def display_locations(self, results):
+        for key, value in results.items():
+            self.map.marker(*self.get_location(key), color='red', title=value)
+            html = self.map.get_html()
+            self.setHtml(html)

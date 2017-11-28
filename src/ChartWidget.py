@@ -16,7 +16,7 @@ class ChartWidget(QChartView):
     def display_processed_request(self, response):
         action = response['action']
 
-        keys = ['disease', 'phase', 'status', 'location']
+        keys = ['disease', 'phase', 'status', 'geo-country', 'geo-city']
 
         title = ["%s: %s" % (key.title(), response[key]) for key in keys if key in response.keys()]
         title = ' | '.join(title)
