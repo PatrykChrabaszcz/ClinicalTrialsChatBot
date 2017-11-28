@@ -1,25 +1,31 @@
-from PyQt5.QtWidgets import QWidget
 from PyQt5.QtWebEngineWidgets import QWebEngineView
-from PyQt5.QtCore import QUrl
-import os
-import gmplot
-from io import StringIO
 from src.Map import Map
+import pickle
 
 
 class MapWidget(QWebEngineView):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.location_cache = {}
+        self.location_cache = None
+        self.location_cache_path = 'resources/location_cache.p'
         self.map = None
         self.clear_map()
 
     def get_location(self, location_name):
+        if self.location_cache is None:
+            try:
+                with open(self.location_cache_path, 'rb') as f:
+                    self.location_cache = pickle.load(f)
+            except:
+                self.location_cache = {}
+
         try:
             location = self.location_cache[location_name]
         except KeyError:
             location = self.map.geocode(location_name)
             self.location_cache[location_name] = location
+            with open(self.location_cache_path, 'wb') as f:
+                pickle.dump(self.location_cache, f)
 
         return location
 
