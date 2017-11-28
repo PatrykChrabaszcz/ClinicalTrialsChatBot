@@ -17,8 +17,8 @@ class MapWidget(QWebEngineView):
                 with open(self.location_cache_path, 'rb') as f:
                     self.location_cache = pickle.load(f)
             except:
+                print('Could not load location cache')
                 self.location_cache = {}
-
         try:
             location = self.location_cache[location_name]
         except KeyError:

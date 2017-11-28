@@ -66,7 +66,6 @@ class Map(gmplot.GoogleMapPlotter):
     # We had to coment out img
     # We added Label
     def write_point(self, f, lat, lon, color, title):
-        print(f, lat, lon, color, title)
         f.write('\t\tvar latlng = new google.maps.LatLng(%f, %f);\n' %
                 (lat, lon))
         f.write('\t\tvar img = new google.maps.MarkerImage(\'%s\');\n' %

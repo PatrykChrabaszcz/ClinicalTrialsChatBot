@@ -1,6 +1,5 @@
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QTextEdit, QLineEdit, QTabWidget, QScrollArea, QSizePolicy
-from PyQt5.QtWidgets import QAbstractScrollArea
-from PyQt5.QtCore import QSize
+from PyQt5.QtWidgets import QAbstractScrollArea, QAction
 from src.MapWidget import MapWidget
 from src.DialogWidget import DialogWidget
 from src.InputConsole import InputConsole
@@ -8,7 +7,7 @@ from src.DialogFlow import DialogFlow
 from src.TreeWidget import TreeWidget
 from src.ChartWidget import ChartWidget
 from src.DatabaseConnector import DatabaseConnector
-
+from src.HintWindow import HintWindow
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -76,3 +75,12 @@ class MainWindow(QMainWindow):
         self.disease_widget.element_selected.connect(self.input_console.insert)
         self.drug_widget.element_selected.connect(self.input_console.insert)
 
+        # Add additional actions
+        self.file_menu = self.menuBar().addMenu('File')
+        self.open_log_action = QAction('Open Log')
+        self.file_menu.addAction(self.open_log_action)
+
+        self.open_hints_action = QAction('Tips and Hints')
+        self.hint_window = HintWindow()
+        self.open_hints_action.triggered.connect(self.hint_window.show)
+        self.file_menu.addAction(self.open_hints_action)
