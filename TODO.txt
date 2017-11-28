@@ -6,6 +6,8 @@ How many Hepatitis C studies (Phase 2) are in United States
 
 How many Hepatitis E studies  are in China compared to Spain
     TODO: Right now it understands it as "I understood your request as counting Hepatitis E studies in China"
+	DONE: correctly classified, please try more examples of this and other questions
 
 How many Hepatitis C studies (Phase 2) are in different regions of France
     TODO: Bot responds "I understood your request as counting Hepatitis C studies (Phase 2) in each region. Querying the database…" France is missing
+	DONE: added a new intent with action count_country_with_local_grouping (this question probably assumes a different representation of the result, focused on comparing the regions?)
