@@ -98,7 +98,7 @@ class DatabaseConnector(QObject):
         self.bot_request_processed_signal.emit(parameters)
         return parameters
 
-    def count_grouping(self, parameters):
+    def count_grouping_country(self, parameters):
 
         select_part = ["SELECT COUNT(DISTINCT studies.nct_id)"]
         from_part = [" FROM studies"]
@@ -150,6 +150,62 @@ class DatabaseConnector(QObject):
         self.bot_request_processed_signal.emit(parameters)
         return parameters
 
+    def count_grouping_city(self, parameters):
+
+        select_part = ["SELECT COUNT(DISTINCT studies.nct_id)"]
+        from_part = [" FROM studies"]
+        where_part = [" WHERE"]
+        add_and = False
+        group_part = [" GROUP BY"]
+        if "date-period" in parameters:
+            value = parameters["date-period"]
+            if add_and:
+                where_part.append("AND studies.start_date <= '" + value + "'" + " AND studies.completion_date >= '" + value + "'")
+            else:
+                add_and = True
+                where_part.append("studies.start_date <= '" + value + "'" + " AND studies.completion_date >= '" + value + "'")
+        if "disease" in parameters:
+            value = parameters["disease"]
+            from_part.append("INNER JOIN conditions on studies.nct_id = conditions.nct_id")
+            if add_and:
+                where_part.append("AND conditions.name = '" + value + "'")
+            else:
+                add_and = True
+                where_part.append("conditions.name = '" + value + "'")
+
+        if "phase" in parameters:
+            value = parameters["phase"]
+            if add_and:
+                where_part.append("AND studies.phase = '" + value + "'")
+            else:
+                add_and = True
+                where_part.append("studies.phase = '" + value + "'")
+        if "grouping_local" in parameters:
+            select_part.append(",facilities.city")
+            from_part.append("INNER JOIN facilities on studies.nct_id = facilities.nct_id")
+            group_part.append("facilities.city")
+            value = parameters["geo-country"]
+            if add_and:
+                where_part.append("And facilities.country = '" + value + "'")
+            else:
+                where_part.append("facilities.country = '" + value + "'")
+            if "status" in parameters:
+                value2 = parameters["status"]
+                where_part.append("AND facilities.status = '" + value2 + "'")
+
+
+        print("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
+        self.cur.execute("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
+        result = self.cur.fetchall()
+        print(result)
+        count_results = {}
+        for value, location in result:
+            count_results[location] = value
+
+        parameters["result"] = count_results
+        self.bot_request_processed_signal.emit(parameters)
+        return parameters
+
     # This slot is called when response is received from the DialogFlow bot
     def process_bot_request(self, resolved_query, parameters, contexts, action):
         print(action)
@@ -157,8 +213,10 @@ class DatabaseConnector(QObject):
         param["action"] = action
         if action == "count_place":
             self.count_place(param)
-        elif action == "count_grouping":
-            self.count_grouping(param)
+        elif action == "count_grouping_country":
+            self.count_grouping_country(param)
+        elif action == "count_grouping_city":
+            self.count_grouping_city(param)
 
     def clear_empty_param(self, parameters):
         for key, value in list(parameters.items()):
@@ -212,7 +270,7 @@ if __name__ == '__main__':
     param2["disease"] = "Hepatitis C"
 #   param2["date-period"] = str(datetime.date(2016, 6, 24))
     # 1st question
-    test = db.count_grouping(param2)
+    test = db.count_grouping_country(param2)
     for key in test:
         print(key)
         print(test[key])
