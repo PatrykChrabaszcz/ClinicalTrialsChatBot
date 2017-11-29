@@ -206,6 +206,42 @@ class DatabaseConnector(QObject):
         self.bot_request_processed_signal.emit(parameters)
         return parameters
 
+    def compare_cities(self, parameters):
+
+        select_part = ["SELECT COUNT(DISTINCT studies.nct_id)"]
+        from_part = [" FROM studies"]
+        where_part = [" WHERE"]
+        group_part = [" GROUP BY"]
+        value = parameters["city_first"]
+        value2 = parameters["city_second"]
+        select_part.append(", facilities.city")
+        from_part.append("INNER JOIN facilities on studies.nct_id = facilities.nct_id")
+        group_part.append("facilities.city")
+        where_part.append("facilities.city = '" + value + "'" + " Or facilities.city = '" + value2 + "'")
+        value = parameters["disease"]
+        from_part.append("INNER JOIN conditions on studies.nct_id = conditions.nct_id")
+        where_part.append("AND conditions.name = '" + value + "'")
+        if "status" in parameters:
+            value = parameters["status"]
+            where_part.append("AND facilities.status = '" + value + "'")
+        if "date-period" in parameters:
+            value = parameters["date-period"]
+            where_part.append("AND studies.start_date <= '" + value + "'" + " AND studies.completion_date >= '" + value + "'")
+        if "phase" in parameters:
+            value = parameters["phase"]
+            where_part.append("AND studies.phase = '" + value + "'")
+
+        print("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
+        self.cur.execute("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
+        result = self.cur.fetchall()
+        print(result)
+        count_results = {}
+        for value, location in result:
+            count_results[location] = value
+        parameters["result"] = count_results
+        self.bot_request_processed_signal.emit(parameters)
+        return parameters
+
     # This slot is called when response is received from the DialogFlow bot
     def process_bot_request(self, resolved_query, parameters, contexts, action):
         print(action)
@@ -217,6 +253,8 @@ class DatabaseConnector(QObject):
             self.count_grouping_country(param)
         elif action == "count_grouping_city":
             self.count_grouping_city(param)
+        elif action == "compare_cities":
+            self.compare_cities(param)
 
     def clear_empty_param(self, parameters):
         for key, value in list(parameters.items()):
@@ -226,7 +264,10 @@ class DatabaseConnector(QObject):
 
 if __name__ == '__main__':
 
+
+
     db = DatabaseConnector()
+    '''
     db.cur.execute("SELECT * FROM countries WHERE countries.nct_id = 'NCT03144440'")
     result = db.cur.fetchone()
     print(1)
@@ -235,6 +276,7 @@ if __name__ == '__main__':
     result = db.cur.fetchone()
     print(2)
     print(result)
+    '''
     """
     db.cur.execute("SELECT facilities.status FROM studies INNER JOIN facilities on studies.nct_id = facilities.nct_id")
     result = db.cur.fetchall()
@@ -259,23 +301,13 @@ if __name__ == '__main__':
     # may comment out, but don't delete
 
     param = dict()
-    param["geo-country"] = "Germany"
+    param["city_first"] = "London"
+    param["city_second"] = "Moscow"
     #param["phase"] = "Recruiting"
-    param["disease"] = "Hepatitis C"
+    param["disease"] = "Melanoma"
 #   param["date-period"] = str(datetime.date(2016, 6, 24))
-    param2 = dict()
-    param2["grouping"] = "Each Country"
-    #param2["phase"] = "Phase 1"
-    param2["status"] = 'Active, not recruiting'
-    param2["disease"] = "Hepatitis C"
-#   param2["date-period"] = str(datetime.date(2016, 6, 24))
     # 1st question
-    test = db.count_grouping_country(param2)
-    for key in test:
-        print(key)
-        print(test[key])
-    # 2st question
-    test2 = db.count_place(param)
+    test2 = db.compare_cities(param)
     for key in test2:
         print(key)
         print(test2[key])
