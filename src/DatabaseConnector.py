@@ -12,7 +12,8 @@ from PyQt5.QtCore import QObject, pyqtSignal
 
 class DatabaseConnector(QObject):
 
-    database_response = pyqtSignal(dict)
+    # Emits a signal whenever database query based on the bot request was successful
+    bot_request_processed_signal = pyqtSignal(dict)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -94,7 +95,7 @@ class DatabaseConnector(QObject):
         print(result)
         count = result[0]
         parameters["result"] = count
-        self.database_response.emit(parameters)
+        self.bot_request_processed_signal.emit(parameters)
         return parameters
 
     def count_grouping(self, parameters):
@@ -146,18 +147,18 @@ class DatabaseConnector(QObject):
             count_results[location] = value
 
         parameters["result"] = count_results
-        self.database_response.emit(parameters)
+        self.bot_request_processed_signal.emit(parameters)
         return parameters
 
     # This slot is called when response is received from the DialogFlow bot
-    def dialogflow_response(self, resolved_query, parameters, contexts, action):
+    def process_bot_request(self, resolved_query, parameters, contexts, action):
+        print(action)
         param = self.clear_empty_param(parameters)
         param["action"] = action
         if action == "count_place":
             self.count_place(param)
         elif action == "count_grouping":
             self.count_grouping(param)
-
 
     def clear_empty_param(self, parameters):
         for key, value in list(parameters.items()):

@@ -16,19 +16,26 @@ except ImportError:
 
 class DialogFlow(QObject):
     # Emitted when DialogFlow wants to tell us something
-    speak = pyqtSignal(['QString'])
+    bot_speak_signal = pyqtSignal('QString')
+
+    # Emitted when DialogFlow returns user message
+    # DialogFlow can recognize speech
+    user_speak_signal = pyqtSignal('QString')
 
     # Emitted when DialogFlow wants to query database
     # User request was successfully recognized
-
-    query_database = pyqtSignal(['QString', dict, list, 'QString'])
+    bot_request_signal = pyqtSignal(['QString', dict, list, 'QString'])
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        # New session every time we start the program
         self.ai = apiai.ApiAI('cce9915cc7f14a41b167f3251581c160')
         self.session_id = str(uuid.uuid4())
 
-    def send_request(self, message):
+    # Slot that should be connected to the signal from the user interface
+    # Will use DialogFlow API to analyze request
+    def process_user_message(self, message):
+        # Send request and get a response
         request = self.ai.text_request()
         request.session_id = self.session_id
         request.query = message
@@ -36,8 +43,8 @@ class DialogFlow(QObject):
 
         status = response['status']
         if status['code'] != 200:
-            self.speak.emit('Failed to connect to the DialogFlow service.\n'
-                            'Error code {0}, error type: {1}'.format(status['code'], status['errorType']))
+            self.bot_speak_signal.emit('Failed to connect to the DialogFlow service.\n'
+                                       'Error code {0}, error type: {1}'.format(status['code'], status['errorType']))
         else:
             result = response['result']
             resolved_query = result['resolvedQuery']
@@ -45,12 +52,16 @@ class DialogFlow(QObject):
             contexts = result['contexts']
             action = result['action']
 
+            self.user_speak_signal.emit(resolved_query)
             if result['actionIncomplete']:
-                self.speak.emit(result['fulfillment']['speech'])
+                self.bot_speak_signal.emit(result['fulfillment']['speech'])
                 # TODO: anything else needed?
             else:
-                self.speak.emit(result['fulfillment']['speech'] + ' Querying the database…')
-                self.query_database.emit(resolved_query, parameters, contexts, action)
+                if action != 'input.unknown':
+                    self.bot_speak_signal.emit(result['fulfillment']['speech'] + ' Querying the database…')
+                    self.bot_request_signal.emit(resolved_query, parameters, contexts, action)
+                else:
+                    self.bot_speak_signal.emit(result['fulfillment']['speech'])
 
 
 if __name__ == '__main__':

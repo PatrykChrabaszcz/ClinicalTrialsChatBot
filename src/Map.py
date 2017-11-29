@@ -13,9 +13,8 @@ class Map(gmplot.GoogleMapPlotter):
         def write(self, text):
             self.lines.append(text)
 
-    def __init__(self, center_lat, center_lng, zoom, apikey=''):
-        super().__init__(center_lat, center_lng, zoom, apikey)
-
+    def __init__(self, center_lat, center_lng, zoom):
+        super().__init__(center_lat, center_lng, zoom, Map.api_key)
 
     @classmethod
     def geocode(self, location_string):
@@ -62,12 +61,11 @@ class Map(gmplot.GoogleMapPlotter):
         lines.append('</body>\n')
         lines.append('</html>\n')
 
-        return lines
+        return ''.join(lines)
 
     # We had to coment out img
     # We added Label
     def write_point(self, f, lat, lon, color, title):
-        print(f, lat, lon, color, title)
         f.write('\t\tvar latlng = new google.maps.LatLng(%f, %f);\n' %
                 (lat, lon))
         f.write('\t\tvar img = new google.maps.MarkerImage(\'%s\');\n' %
