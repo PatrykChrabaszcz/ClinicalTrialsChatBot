@@ -31,7 +31,7 @@ class HintWindow(QWidget):
 
         self.resize(QSize(300, 200))
 
-        self.layout = QVBoxLayout(self)
+        self.layout = QVBoxLayout()
 
         self.next_button = QPushButton(self)
         self.next_button.setText('Next')

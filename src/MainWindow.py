@@ -10,6 +10,8 @@ from src.DatabaseConnector import DatabaseConnector
 from src.HintWindow import HintWindow
 from src.LogWindow import logger, LogWindow
 
+from src.DBConnector import DBConnector
+
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -26,7 +28,8 @@ class MainWindow(QMainWindow):
         self.dialog_widget = DialogWidget(self.centralWidget())
         self.input_console = InputConsole(self.centralWidget())
         self.dialogflow = DialogFlow(self)
-        self.database_connector = DatabaseConnector(self)
+        #self.database_connector = DatabaseConnector(self)
+        self.database_connector = DBConnector(self)
 
         # Arrange components in a layout
         self.l_h_left = QHBoxLayout()
