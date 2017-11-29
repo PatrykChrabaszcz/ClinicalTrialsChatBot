@@ -168,10 +168,23 @@ class DatabaseConnector(QObject):
 if __name__ == '__main__':
 
     db = DatabaseConnector()
-    #db.cur.execute("SELECT facilities.status FROM studies INNER JOIN facilities on studies.nct_id = facilities.nct_id")
-    #result = db.cur.fetchmany(150)
-    #for line in result:
-    #    print(line)
+    db.cur.execute("SELECT * FROM countries WHERE countries.nct_id = 'NCT03144440'")
+    result = db.cur.fetchone()
+    print(1)
+    print(result)
+    db.cur.execute("SELECT * FROM studies WHERE studies.nct_id = 'NCT03144440'")
+    result = db.cur.fetchone()
+    print(2)
+    print(result)
+    """
+    db.cur.execute("SELECT facilities.status FROM studies INNER JOIN facilities on studies.nct_id = facilities.nct_id")
+    result = db.cur.fetchall()
+    test_values = {}
+    for line in result:
+        test_values[line] = True
+    for key in test_values:
+        print(key)
+    """
     #
     # # 1st question
     # result = db.count(disease='Hepatitis C', location=None, location_modifier='each country', phase='Phase 2',
@@ -194,7 +207,7 @@ if __name__ == '__main__':
     param2 = dict()
     param2["grouping"] = "Each Country"
     #param2["phase"] = "Phase 1"
-    #param2["status"] = "Active, Not Recruiting"
+    param2["status"] = 'Active, not recruiting'
     param2["disease"] = "Hepatitis C"
 #   param2["date-period"] = str(datetime.date(2016, 6, 24))
     # 1st question
