@@ -397,11 +397,13 @@ if __name__ == '__main__':
 
 
     db = DatabaseConnector()
-    '''
-    db.cur.execute("SELECT * FROM countries WHERE countries.nct_id = 'NCT03144440'")
-    result = db.cur.fetchone()
+    db.cur.execute("SELECT COUNT(DISTINCT studies.nct_id), EXTRACT(YEAR from studies.start_date) FROM studies WHERE EXTRACT(YEAR from studies.start_date) = '2013' GROUP BY EXTRACT(YEAR from studies.start_date) ")
+    result = db.cur.fetchall()
+    for line, value in result:
+        print(line)
+        print(result)
     print(1)
-    print(result)
+    '''
     db.cur.execute("SELECT * FROM studies WHERE studies.nct_id = 'NCT03144440'")
     result = db.cur.fetchone()
     print(2)
@@ -430,6 +432,7 @@ if __name__ == '__main__':
 
     # may comment out, but don't delete
 
+'''
     param = dict()
     param["disease"] = "Melanoma"
     param["phase_first"] = "Phase 1"
@@ -442,7 +445,7 @@ if __name__ == '__main__':
     for key in test2:
         print(key)
         print(test2[key])
-
+'''
 '''
     # TODO: the missing entries are not handled yet
     querr = db.cur.execute("select distinct mesh_term from browse_conditions")  # what about names from conditions?

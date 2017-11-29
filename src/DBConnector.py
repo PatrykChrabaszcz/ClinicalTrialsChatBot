@@ -22,7 +22,8 @@ class SQLGenerator:
     groups = {
         'geo-city': "facilities.city",
         'geo-country': "facilities.country",
-        'disease': "conditions.name"
+        'disease': "conditions.name",
+        'date-period': "EXTRACT(YEAR from studies.start_date)"
     }
     filters = {
         'phase': "studies.phase IN %(phase)s",
@@ -30,6 +31,7 @@ class SQLGenerator:
         'geo-country': "facilities.country IN %(geo-country)s",
         'geo-city': "facilities.city IN %(geo-city)s",
         'status': "facilities.status IN %(status)s"
+
     }
 
     @staticmethod
