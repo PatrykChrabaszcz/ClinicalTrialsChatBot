@@ -217,7 +217,43 @@ class DatabaseConnector(QObject):
         select_part.append(", facilities.city")
         from_part.append("INNER JOIN facilities on studies.nct_id = facilities.nct_id")
         group_part.append("facilities.city")
-        where_part.append("facilities.city = '" + value + "'" + " Or facilities.city = '" + value2 + "'")
+        where_part.append("(facilities.city = '" + value + "'" + " Or facilities.city = '" + value2 + "')")
+        value = parameters["disease"]
+        from_part.append("INNER JOIN conditions on studies.nct_id = conditions.nct_id")
+        where_part.append("AND conditions.name = '" + value + "'")
+        if "status" in parameters:
+            value = parameters["status"]
+            where_part.append("AND facilities.status = '" + value + "'")
+        if "date-period" in parameters:
+            value = parameters["date-period"]
+            where_part.append("AND studies.start_date <= '" + value + "'" + " AND studies.completion_date >= '" + value + "'")
+        if "phase" in parameters:
+            value = parameters["phase"]
+            where_part.append("AND studies.phase = '" + value + "'")
+
+        print("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
+        self.cur.execute("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
+        result = self.cur.fetchall()
+        print(result)
+        count_results = {}
+        for value, location in result:
+            count_results[location] = value
+        parameters["result"] = count_results
+        self.bot_request_processed_signal.emit(parameters)
+        return parameters
+
+    def compare_countries(self, parameters):
+
+        select_part = ["SELECT COUNT(DISTINCT studies.nct_id)"]
+        from_part = [" FROM studies"]
+        where_part = [" WHERE"]
+        group_part = [" GROUP BY"]
+        value = parameters["country_first"]
+        value2 = parameters["country_second"]
+        select_part.append(", facilities.country")
+        from_part.append("INNER JOIN facilities on studies.nct_id = facilities.nct_id")
+        group_part.append("facilities.country")
+        where_part.append("(facilities.country = '" + value + "'" + " Or facilities.country = '" + value2 + "')")
         value = parameters["disease"]
         from_part.append("INNER JOIN conditions on studies.nct_id = conditions.nct_id")
         where_part.append("AND conditions.name = '" + value + "'")
@@ -254,6 +290,8 @@ class DatabaseConnector(QObject):
         elif action == "count_grouping_city":
             self.count_grouping_city(param)
         elif action == "compare_cities":
+            self.compare_cities(param)
+        elif action == "compare_countries":
             self.compare_cities(param)
 
     def clear_empty_param(self, parameters):
@@ -301,8 +339,8 @@ if __name__ == '__main__':
     # may comment out, but don't delete
 
     param = dict()
-    param["city_first"] = "London"
-    param["city_second"] = "Moscow"
+    param["city_first"] = "Moscow"
+    param["city_second"] = "Paris"
     #param["phase"] = "Recruiting"
     param["disease"] = "Melanoma"
 #   param["date-period"] = str(datetime.date(2016, 6, 24))
