@@ -74,7 +74,7 @@ class DatabaseConnector(QObject):
                 else:
                     add_and = True
                     where_part.append("facilities.country = '" + value + "'")
-        if "geo-city" in parameters:
+        elif "geo-city" in parameters:
             value = parameters["geo-city"]
             from_part.append("INNER JOIN facilities on studies.nct_id = facilities.nct_id")
             if "status" in parameters:
@@ -278,6 +278,53 @@ class DatabaseConnector(QObject):
         self.bot_request_processed_signal.emit(parameters)
         return parameters
 
+    def compare_diseases(self, parameters):
+
+        select_part = ["SELECT COUNT(DISTINCT studies.nct_id)"]
+        from_part = [" FROM studies"]
+        where_part = [" WHERE"]
+        group_part = [" GROUP BY"]
+        value = parameters["disease_first"]
+        value2 = parameters["disease_second"]
+        select_part.append(", conditions.name")
+        from_part.append("INNER JOIN conditions on studies.nct_id = conditions.nct_id")
+        where_part.append("(conditions.name = '" + value + "'" + " Or conditions.name = '" + value2 + "')")
+        group_part.append(" conditions.name")
+        if "geo-country" in parameters:
+            value = parameters["geo-country"]
+            from_part.append("INNER JOIN facilities on studies.nct_id = facilities.nct_id")
+            if "status" in parameters:
+                value2 = parameters["status"]
+                where_part.append("AND facilities.country = '" + value + "'" + " AND facilities.status = '" + value2 + "'")
+            else:
+                where_part.append("AND facilities.country = '" + value + "'")
+        if "geo-city" in parameters:
+            value = parameters["geo-city"]
+            from_part.append("INNER JOIN facilities on studies.nct_id = facilities.nct_id")
+            if "status" in parameters:
+                value2 = parameters["status"]
+                where_part.append("AND facilities.city = '" + value + "'" + " AND facilities.status = '" + value2 + "'")
+            else:
+                where_part.append("AND facilities.city = '" + value + "'")
+
+        if "date-period" in parameters:
+            value = parameters["date-period"]
+            where_part.append("AND studies.start_date <= '" + value + "'" + " AND studies.completion_date >= '" + value + "'")
+        if "phase" in parameters:
+            value = parameters["phase"]
+            where_part.append("AND studies.phase = '" + value + "'")
+        print("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
+        self.cur.execute("".join(select_part) + " ".join(from_part) + " ".join(where_part) + " ".join(group_part) + ";")
+        result = self.cur.fetchall()
+        print(result)
+        count_results = {}
+        for value, location in result:
+            count_results[location] = value
+        parameters["result"] = count_results
+        self.bot_request_processed_signal.emit(parameters)
+        return parameters
+
+
     # This slot is called when response is received from the DialogFlow bot
     def process_bot_request(self, resolved_query, parameters, contexts, action):
         print(action)
@@ -293,6 +340,8 @@ class DatabaseConnector(QObject):
             self.compare_cities(param)
         elif action == "compare_countries":
             self.compare_cities(param)
+        elif action == "compare_diseases":
+            self.compare_diseases(param)
 
     def clear_empty_param(self, parameters):
         for key, value in list(parameters.items()):
@@ -339,13 +388,14 @@ if __name__ == '__main__':
     # may comment out, but don't delete
 
     param = dict()
-    param["city_first"] = "Moscow"
-    param["city_second"] = "Paris"
-    #param["phase"] = "Recruiting"
-    param["disease"] = "Melanoma"
-#   param["date-period"] = str(datetime.date(2016, 6, 24))
+    param["disease_first"] = "Hepatitis C"
+    param["disease_second"] = "Melanoma"
+    param["phase"] = "Phase 2"
+    param["status"] = ""
+    param["geo-country"] = "France"
+    #param["date-period"] = str(datetime.date(2016, 6, 24))
     # 1st question
-    test2 = db.compare_cities(param)
+    test2 = db.compare_diseases(param)
     for key in test2:
         print(key)
         print(test2[key])
