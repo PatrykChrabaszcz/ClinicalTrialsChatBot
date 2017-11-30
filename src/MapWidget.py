@@ -77,7 +77,7 @@ class MapWidget(QWebEngineView):
                     location_name = response['geo-country'] if 'geo-country' in response.keys() else None
                     location_name = response['geo-city'] if 'geo-city' in response.keys() else location_name
                     location = Map.geocode(location_name)
-                    self.map.marker(*location, color='red', title=str(result[0]))
+                    self.map.marker(*location, color='red', title='%d' % result[0])
                 except:
                     pass
                 html = self.map.get_html()
@@ -111,7 +111,7 @@ class MapWidget(QWebEngineView):
         for result, name in zip(result_array, names):
             try:
                 lat, long = self.location_cache.get_country(name)
-                self.map.marker(lat, long, color='red', title=str(result))
+                self.map.marker(lat, long, color='red', title='%d' % result)
             except:
                 print('Could not find a location for %s' % name)
                 pass
@@ -123,7 +123,7 @@ class MapWidget(QWebEngineView):
         for result, name in zip(result_array, names):
             try:
                 lat, long = self.location_cache.get_city(name, country)
-                self.map.marker(lat, long, color='red', title=str(result))
+                self.map.marker(lat, long, color='red', title='%d' % result)
             except:
                 print('Could not find a location for %s' % name)
                 pass
