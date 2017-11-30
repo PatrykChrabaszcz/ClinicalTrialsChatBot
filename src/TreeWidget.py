@@ -176,7 +176,7 @@ class TreeWidget(QTreeView):
         names = []
         for key, value in parameters.items():
             if self.name in key:
-                names.append(value)
+                names.extend(value)
         self.select_by_names(names)
 
 

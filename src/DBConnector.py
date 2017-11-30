@@ -2,7 +2,8 @@ import psycopg2
 import datetime
 from PyQt5.QtCore import QObject, pyqtSignal
 from src.LogWindow import logger
-
+from src.utils import get_subcategories
+import pickle
 # Hostname:  aact-prod.cr4nrslb1lw7.us-east-1.rds.amazonaws.com
 # Port: 5432
 # Database name:  aact
@@ -17,31 +18,31 @@ class SQLGenerator:
         'disease': disease_join,
         'geo-city': location_join,
         'geo-country': location_join,
-        'status': location_join
+        'status': location_join,
     }
     groups = {
         'geo-city': "facilities.city",
         'geo-country': "facilities.country",
         'disease': "conditions.name",
-        'date-period': "EXTRACT(YEAR from studies.start_date)"
+        'date-period': "EXTRACT(YEAR from studies.start_date)",
+        'phase': "studies.phase",
     }
     filters = {
         'phase': "studies.phase IN %(phase)s",
         'disease': "conditions.name IN %(disease)s",
         'geo-country': "facilities.country IN %(geo-country)s",
         'geo-city': "facilities.city IN %(geo-city)s",
-        'status': "facilities.status IN %(status)s"
-
+        'status': "facilities.status IN %(status)s",
+        'date-period': "EXTRACT(YEAR from studies.start_date) in %(date-period)s"
     }
 
     @staticmethod
-    def generate_query(parameters, group=['geo-country']):
-
+    def generate_query(parameters, group=None):
+        # We want geo-city and geo-country to be the first element used for grouping
+        group = sorted(group, key=lambda x: x != 'geo-city' and x != 'geo-country')
         join_sqls = set([SQLGenerator.joins[key] for key in list(parameters.keys()) + group if key in SQLGenerator.joins])
         where_sqls = [SQLGenerator.filters[key] for key in parameters.keys() if key in SQLGenerator.filters]
 
-        print(parameters.keys())
-        print(where_sqls)
         sql = [
             "SELECT ",
             " COUNT(DISTINCT studies.nct_id) "
@@ -60,7 +61,7 @@ class SQLGenerator:
             " AND ".join(where_sqls)
         ])
 
-        if group is not None:
+        if group is not None and len(group) != 0:
             sql.extend([
                 " GROUP BY ",
             ])
@@ -74,6 +75,12 @@ class SQLGenerator:
     def convert_params(params):
         new_params = {}
         for k, v in params.items():
+            # Right now we only use start date and year to filter by time
+            if k == 'date-period' and isinstance(v, list):
+                v = [i[:4] for i in v]
+            elif k == 'date-period':
+                v = v[:4]
+
             if isinstance(v, tuple):
                 new_params[k] = v
             elif isinstance(v, list):
@@ -81,13 +88,11 @@ class SQLGenerator:
             else:
                 new_params[k] = (v,)
 
-        print('NEW_PARAMS')
-        print(new_params)
         return new_params
 
     # Will remove empty lists
     @staticmethod
-    def clear_params(params):
+    def cleared_params(params):
         new_params = {}
         for k, v in params.items():
             if isinstance(v, list):
@@ -100,8 +105,12 @@ class SQLGenerator:
 
 
 class DBConnector(QObject):
+
+    A_comp = 'compare'
+    A_comp_grp_city = 'compare_grouping_city'
+    A_comp_grp_country = 'compare_grouping_country'
     # Emits a signal whenever database query based on the bot request was successful
-    bot_request_processed_signal = pyqtSignal(dict)
+    bot_request_processed_signal = pyqtSignal([dict, list])
 
     connection_info = "dbname='aact' " \
                       "user='aact' " \
@@ -112,6 +121,8 @@ class DBConnector(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._conn = None
+        with open("resources/disease_num2name.p", "rb") as f:
+            self.disease_dictionary = pickle.load(f)
 
     # Connect to the database if connection is not present
     def get_cursor(self):
@@ -135,64 +146,60 @@ class DBConnector(QObject):
             logger.log("I am unable to connect to the database")
 
     # Queries:
-    def run_query(self, parameters, group=['geo-country']):
-        print(parameters)
+    def run_query(self, parameters, group=None):
         logger.log('Requested to compare countries, query the database')
 
-        query = SQLGenerator.generate_query(parameters, group=group)
+        # If there is a disease in the parameters we need to include all sub-diseases as well
+        diseases = parameters['disease']
 
-        cursor = self.get_cursor()
+        if len(diseases) != 0:
+            results = []
+            for disease in diseases:
+                parameters['disease'] = get_subcategories(disease, self.disease_dictionary)
+                query = SQLGenerator.generate_query(parameters, group=group)
+                cursor = self.get_cursor()
+                cursor.execute(query, SQLGenerator.convert_params(parameters))
+                results.extend([r + (disease,) for r in cursor.fetchall()])
+        else:
+            query = SQLGenerator.generate_query(parameters, group=group)
+            cursor = self.get_cursor()
+            cursor.execute(query, SQLGenerator.convert_params(parameters))
+            results = cursor.fetchall()
 
-        cursor.execute(query, SQLGenerator.convert_params(parameters))
-        print(cursor.query)
-        result = cursor.fetchall()
+        parameters["result"] = results
 
-        print('HELLO')
-        print(result)
-        parameters["result"] = result
-
-
-        self.bot_request_processed_signal.emit(parameters)
+        self.bot_request_processed_signal.emit(parameters, group)
 
     # This slot is called when response is received from the DialogFlow bot
     def process_bot_request(self, resolved_query, parameters, contexts, action):
-        parameters = SQLGenerator.clear_params(parameters)
-        print(action)
-        param = self.clear_empty_param(parameters)
+        param = SQLGenerator.cleared_params(parameters)
+        print(param)
         param["action"] = action
 
-        if action == 'compare':
+        if action in [DBConnector.A_comp, DBConnector.A_comp_grp_city, DBConnector.A_comp_grp_country]:
+            # Find out which parameters have more values and group by them
             group_by = []
             for k, v in param.items():
-                if isinstance(v, list):
+                # Special case for disease, we need to browse sub-diseases
+                if isinstance(v, list) and len(v) > 1 and k != 'disease':
                     group_by.append(k)
-            self.run_query(param, group=group_by)
 
-        if action == "count_place":
-            self.run_query(param)
-        elif action == "count_grouping_country":
-            self.run_query(param, group=['geo-country'])
-        elif action == "count_grouping_city":
-            self.run_query(param, group=['geo-city'])
-        elif action == "compare_countries":
-            param['geo-country'] = (param['country_first'], param['country_second'])
-            self.run_query(param, group='geo-country')
-        elif action == "compare_cities":
-            print(param['city_first'])
-            print(param['city_second'])
-            param['geo-city'] = (param['city_first'], param['city_second'])
-            self.run_query(param, group='geo-city')
+            if action == DBConnector.A_comp_grp_city:
+                group_by.append('geo-city')
 
-    def clear_empty_param(self, parameters):
-        for key, value in list(parameters.items()):
-            if value == "":
-                del parameters[key]
-        return parameters
+            if action == DBConnector.A_comp_grp_country:
+                group_by.append('geo-country')
+
+            self.run_query(param, group=list(set(group_by)))
 
 if __name__ == '__main__':
 
-    db = DatabaseConnector()
-    #db.cur.execute("SELECT facilities.status FROM studies INNER JOIN facilities on studies.nct_id = facilities.nct_id")
+    db = DBConnector()
+    c = db.get_cursor()
+    c.execute("SELECT  COUNT(DISTINCT studies.nct_id) , facilities.city , studies.phase, studies.nct_id FROM studies INNER JOIN conditions on studies.nct_id = conditions.nct_id  INNER JOIN facilities on studies.nct_id = facilities.nct_id  WHERE studies.phase IN ('Phase 1', 'Phase 2') AND facilities.country IN ('Italy') AND conditions.name IN ('Osteoarthritis') GROUP BY facilities.city, studies.phase, studies.nct_id")
+
+    print(c.fetchall())
+
     #result = db.cur.fetchmany(150)
     #for line in result:
     #    print(line)
@@ -209,28 +216,28 @@ if __name__ == '__main__':
     #
 
     # may comment out, but don't delete
-
-    param = dict()
-    param["geo-country"] = "Germany"
-    #param["phase"] = "Recruiting"
-    param["disease"] = "Hepatitis C"
-#   param["date-period"] = str(datetime.date(2016, 6, 24))
-    param2 = dict()
-    param2["grouping"] = "Each Country"
-    #param2["phase"] = "Phase 1"
-    #param2["status"] = "Active, Not Recruiting"
-    param2["disease"] = "Hepatitis C"
-#   param2["date-period"] = str(datetime.date(2016, 6, 24))
-    # 1st question
-    test = db.count_grouping(param2)
-    for key in test:
-        print(key)
-        print(test[key])
-    # 2st question
-    test2 = db.count_place(param)
-    for key in test2:
-        print(key)
-        print(test2[key])
+#
+#     param = dict()
+#     param["geo-country"] = "Germany"
+#     #param["phase"] = "Recruiting"
+#     param["disease"] = "Hepatitis C"
+# #   param["date-period"] = str(datetime.date(2016, 6, 24))
+#     param2 = dict()
+#     param2["grouping"] = "Each Country"
+#     #param2["phase"] = "Phase 1"
+#     #param2["status"] = "Active, Not Recruiting"
+#     param2["disease"] = "Hepatitis C"
+# #   param2["date-period"] = str(datetime.date(2016, 6, 24))
+#     # 1st question
+#     test = db.count_grouping(param2)
+#     for key in test:
+#         print(key)
+#         print(test[key])
+#     # 2st question
+#     test2 = db.count_place(param)
+#     for key in test2:
+#         print(key)
+#         print(test2[key])
 
 '''
     # TODO: the missing entries are not handled yet
