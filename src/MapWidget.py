@@ -95,9 +95,9 @@ class MapWidget(QWebEngineView):
             # 1 D, Only 1D data supported
             if len(result_array.shape) == 1:
                 if country:
-                    self.display_grouping_country(result_array, keys)
+                    self.display_grouping_country(result_array, keys[0])
                 else:
-                    self.display_grouping_city(result_array, keys, response['geo-country'])
+                    self.display_grouping_city(result_array, keys[0], response['geo-country'])
 
         else:
             self.clear_map()
