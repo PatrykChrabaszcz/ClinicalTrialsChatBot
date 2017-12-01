@@ -1,9 +1,11 @@
 from PyQt5.QtChart import QChart, QChartView, QBarSet, QBarCategoryAxis, QPieSeries, QHorizontalBarSeries, QAbstractBarSeries, QValueAxis
+from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtGui import QPainter, QFont, QPen, QColor
 from src.DBConnector import DBConnector
 import numpy as np
 from src.LogWindow import logger
 from src.utils import extract_multidim_results
+
 
 class ChartWidget(QChartView):
     def __init__(self, parent=None):
@@ -43,6 +45,7 @@ class ChartWidget(QChartView):
             series = QPieSeries()
             series.append("%s" % value, value)
             chart.addSeries(series)
+            elements = 1
 
         else:
             x_range = np.max(result_array)
@@ -96,11 +99,12 @@ class ChartWidget(QChartView):
             else:
                 return
 
-            chart.setMinimumHeight(30 * elements)
             chart.addSeries(series)
             chart.createDefaultAxes()
             chart.setAxisY(axis, series)
             chart.axisX().setRange(0, 1.1 * x_range)
             chart.axisX().applyNiceNumbers()
 
+        chart.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.MinimumExpanding)
+        chart.setMinimumHeight(30 * elements)
         self.setChart(chart)

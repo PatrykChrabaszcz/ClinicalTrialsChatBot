@@ -98,7 +98,6 @@ class MapWidget(QWebEngineView):
                     self.display_grouping_country(result_array, keys[0])
                 else:
                     self.display_grouping_city(result_array, keys[0], response['geo-country'])
-
         else:
             self.clear_map()
 

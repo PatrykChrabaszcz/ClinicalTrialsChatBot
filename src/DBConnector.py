@@ -67,7 +67,6 @@ class SQLGenerator:
             ])
             sql.append(', '.join([SQLGenerator.groups[g] for g in group]))
 
-        print(''.join(sql))
         return ''.join(sql)
 
     # Will simply convert each param value to a tuple
@@ -150,24 +149,27 @@ class DBConnector(QObject):
         logger.log('Requested to compare countries, query the database')
 
         # If there is a disease in the parameters we need to include all sub-diseases as well
-        diseases = parameters['disease']
 
-        if len(diseases) != 0:
+        if 'disease' in parameters.keys():
+            diseases = parameters['disease']
             results = []
             for disease in diseases:
                 parameters['disease'] = get_subcategories(disease, self.disease_dictionary)
                 query = SQLGenerator.generate_query(parameters, group=group)
                 cursor = self.get_cursor()
                 cursor.execute(query, SQLGenerator.convert_params(parameters))
+                print(cursor.query)
                 results.extend([r + (disease,) for r in cursor.fetchall()])
         else:
             query = SQLGenerator.generate_query(parameters, group=group)
             cursor = self.get_cursor()
             cursor.execute(query, SQLGenerator.convert_params(parameters))
+            print(cursor.query)
             results = cursor.fetchall()
 
         parameters["result"] = results
 
+        print(results)
         self.bot_request_processed_signal.emit(parameters, group)
 
     # This slot is called when response is received from the DialogFlow bot
@@ -196,7 +198,7 @@ if __name__ == '__main__':
 
     db = DBConnector()
     c = db.get_cursor()
-    c.execute("SELECT  COUNT(DISTINCT studies.nct_id) , facilities.city , studies.phase, studies.nct_id FROM studies INNER JOIN conditions on studies.nct_id = conditions.nct_id  INNER JOIN facilities on studies.nct_id = facilities.nct_id  WHERE studies.phase IN ('Phase 1', 'Phase 2') AND facilities.country IN ('Italy') AND conditions.name IN ('Osteoarthritis') GROUP BY facilities.city, studies.phase, studies.nct_id")
+    c.execute("SELECT COUNT(DISTINCT studies.nct_id) , facilities.city , studies.phase, studies.nct_id FROM studies INNER JOIN conditions on studies.nct_id = conditions.nct_id  INNER JOIN facilities on studies.nct_id = facilities.nct_id  WHERE studies.phase IN ('Phase 1', 'Phase 2') AND facilities.country IN ('Italy') AND conditions.name IN ('Osteoarthritis') GROUP BY facilities.city, studies.phase, studies.nct_id")
 
     print(c.fetchall())
 

@@ -123,9 +123,8 @@ class TreeWidget(QTreeView):
     def __init__(self, name, parent=None):
         super().__init__(parent)
         self.name = name
-
         self.model = TreeModel("resources/%s_num2name.p" % name, "", self)
-
+        self.setSelectionMode(QAbstractItemView.NoSelection)
         with open("resources/%s_num2name.p" % name, "rb") as f:
             self.num2name = pickle.load(f)
         with open("resources/%s_name2num.p" % name, "rb") as f:

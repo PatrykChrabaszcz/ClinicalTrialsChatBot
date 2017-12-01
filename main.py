@@ -6,8 +6,8 @@ from src.MainWindow import MainWindow
 def main():
     app = QApplication(sys.argv)
     window = MainWindow()
-    window.resize(600, 600)
-    window.show()
+    #window.resize(600, 600)
+    window.showMaximized()
     app.exec()
 
 if __name__ == "__main__":

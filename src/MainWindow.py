@@ -95,3 +95,4 @@ class MainWindow(QMainWindow):
         self.file_menu.addAction(self.open_hints_action)
 
         logger.log('Start application')
+
