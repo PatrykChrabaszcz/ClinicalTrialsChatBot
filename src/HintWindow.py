@@ -7,7 +7,7 @@ class HintWindow(QWidget):
         def __init__(self):
             self.messages = []
             self.counter = 0
-            self.messages.append('You can simply double click on the disease or drug name in the left panel, and copy'
+            self.messages.append('You can simply double click on the disease or drug name in the left panel '
                                  'to copy it into the input console.')
             self.messages.append('You can ask the bot to compare number of studies for a particular disease between '
                                  'the countries. Try: \n\"How many Hepatitis C studies (Phase 2) are in each country\"')
@@ -32,7 +32,7 @@ class HintWindow(QWidget):
         self.resize(QSize(300, 200))
 
         self.layout = QVBoxLayout()
-
+        self.setLayout(self.layout)
         self.next_button = QPushButton(self)
         self.next_button.setText('Next')
         self.next_button.pressed.connect(self.display_next)
@@ -41,7 +41,7 @@ class HintWindow(QWidget):
         self.prev_button.setText('Prev')
         self.prev_button.pressed.connect(self.display_prev)
 
-        self.button_layout = QHBoxLayout(self)
+        self.button_layout = QHBoxLayout()
         self.button_layout.addWidget(self.prev_button)
         self.button_layout.addWidget(self.next_button)
 

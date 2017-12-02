@@ -2,7 +2,8 @@ from PyQt5.QtWebEngineWidgets import QWebEngineView
 from src.Map import Map
 import numpy as np
 import pickle
-
+from src.DBConnector import DBConnector
+from src.utils import extract_multidim_results
 
 class MapWidget(QWebEngineView):
 
@@ -17,14 +18,14 @@ class MapWidget(QWebEngineView):
                 with open(self.country_cache_path, 'rb') as f:
                     self.country_cache = pickle.load(f)
             except:
-                print('Could not load location cache')
+                print('Could not load country cache')
                 self.country_cache = {}
 
             try:
                 with open(self.city_cache_path, 'rb') as f:
                     self.city_cache = pickle.load(f)
             except:
-                print('Could not load location cache')
+                print('Could not load city cache')
                 self.city_cache = {}
 
         def get_country(self, name):
@@ -36,13 +37,13 @@ class MapWidget(QWebEngineView):
                 self.country_cache[extended_name] = location
                 with open(self.country_cache_path, 'wb') as f:
                     pickle.dump(self.country_cache, f)
-
             return location
 
         def get_city(self, name, country):
-            extended_name = ('%s %s' % (name, country)).title()
+            extended_name = ('%s, %s' % (name, country)).title()
+            print('Extended name %s' % extended_name)
             try:
-                location = self.city_cache[name]
+                location = self.city_cache[extended_name]
             except KeyError:
                 location = Map.geocode(extended_name)
                 self.city_cache[extended_name] = location
@@ -57,20 +58,46 @@ class MapWidget(QWebEngineView):
         self.clear_map()
         self.location_cache = MapWidget.LocationCache()
 
-    def display_processed_request(self, response):
+    def display_processed_request(self, response, group):
+
         self.clear_map()
         action = response['action']
+        result = response['result']
 
-        if action in ['count_place']:
+        # No data extracted
+        if len(result) == 0:
+            return
 
-            location_name = response['geo-country'] if 'geo-country' in response.keys() else None
-            location_name = response['geo-city'] if 'geo-city' in response.keys() else location_name
+        title, result_array, keys = extract_multidim_results(result)
 
-            self.display_country_count(location_name, response['result'])
+        # If dim is 1 then we know that it's just a value, so no grouping was done
+        if len(keys) == 0:
+            if 'geo-city' in response.keys() or 'geo-country' in response.keys():
+                try:
+                    location_name = response['geo-country'] if 'geo-country' in response.keys() else None
+                    location_name = response['geo-city'] if 'geo-city' in response.keys() else location_name
+                    location = Map.geocode(location_name)
+                    self.map.marker(*location, color='red', title='%d' % result[0])
+                except:
+                    pass
+                html = self.map.get_html()
+                self.setHtml(html)
 
-        elif action in ['count_grouping']:
-            self.display_grouping_country(response['result'])
+            return
 
+        if 'geo-country' not in group and 'geo-city' not in group:
+            return
+
+        country = 'geo-country' in group
+
+        if action in [DBConnector.A_comp, DBConnector.A_comp_grp_city, DBConnector.A_comp_grp_country]:
+
+            # 1 D, Only 1D data supported
+            if len(result_array.shape) == 1:
+                if country:
+                    self.display_grouping_country(result_array, keys[0])
+                else:
+                    self.display_grouping_city(result_array, keys[0], response['geo-country'])
         else:
             self.clear_map()
 
@@ -79,29 +106,27 @@ class MapWidget(QWebEngineView):
         html = self.map.get_html()
         self.setHtml(html)
 
-    def display_country_count(self, name, count_result):
-        long, lat = self.location_cache.get_country(name)
-        self.map.marker(long, lat, color='red', title=count_result)
+    def display_grouping_country(self, result_array, names):
+        for result, name in zip(result_array, names):
+            try:
+                lat, long = self.location_cache.get_country(name)
+                self.map.marker(lat, long, color='red', title='%d' % result)
+            except:
+                print('Could not find a location for %s' % name)
+                pass
+
         html = self.map.get_html()
         self.setHtml(html)
 
-    def display_city_count(self, name, count_result, country):
-        long, lat = self.location_cache.get_city(name, country)
-        self.map.marker(long, lat, color='red', title=count_result)
+    def display_grouping_city(self, result_array, names, country):
+        for result, name in zip(result_array, names):
+            try:
+                lat, long = self.location_cache.get_city(name, country)
+                self.map.marker(lat, long, color='red', title='%d' % result)
+            except:
+                print('Could not find a location for %s' % name)
+                pass
+
         html = self.map.get_html()
         self.setHtml(html)
-
-    def display_grouping_country(self, results):
-        for name, count_result in results.items():
-            lat, long = self.location_cache.get_country(name)
-            self.map.marker(lat, long, color='red', title=count_result)
-            html = self.map.get_html()
-            self.setHtml(html)
-
-    def display_grouping_city(self, results, country):
-        for name, count_result in results.items():
-            lat, long = self.location_cache.get_city(name, country)
-            self.map.marker(lat, long, color='red', title=count_result)
-            html = self.map.get_html()
-            self.setHtml(html)
 

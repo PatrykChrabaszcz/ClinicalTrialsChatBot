@@ -18,13 +18,16 @@ class Map(gmplot.GoogleMapPlotter):
 
     @classmethod
     def geocode(self, location_string):
-        geocode = requests.get(
-            'https://maps.googleapis.com/maps/api/geocode/json?address="%s"&key=%s' %
-            (location_string, Map.api_key))
-        geocode = json.loads(geocode.text)
-        print(geocode)
-        latlng_dict = geocode['results'][0]['geometry']['location']
-        return latlng_dict['lat'], latlng_dict['lng']
+        try:
+            geocode = requests.get(
+                'https://maps.googleapis.com/maps/api/geocode/json?address="%s"&key=%s' %
+                (location_string, Map.api_key))
+            geocode = json.loads(geocode.text)
+            print(geocode)
+            latlng_dict = geocode['results'][0]['geometry']['location']
+            return latlng_dict['lat'], latlng_dict['lng']
+        except:
+            return None
 
     def get_html(self):
         f = Map.FakeFile()
