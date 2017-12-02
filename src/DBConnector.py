@@ -31,7 +31,6 @@ class SQLGenerator:
         'geo-country': "facilities.country IN %(geo-country)s",
         'geo-city': "facilities.city IN %(geo-city)s",
         'status': "facilities.status IN %(status)s"
-
     }
 
     @staticmethod
@@ -191,7 +190,7 @@ class DBConnector(QObject):
 
 if __name__ == '__main__':
 
-    db = DatabaseConnector()
+    #db = DatabaseConnector()
     #db.cur.execute("SELECT facilities.status FROM studies INNER JOIN facilities on studies.nct_id = facilities.nct_id")
     #result = db.cur.fetchmany(150)
     #for line in result:
