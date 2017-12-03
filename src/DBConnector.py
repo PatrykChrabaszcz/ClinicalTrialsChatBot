@@ -160,6 +160,21 @@ class DBConnector(QObject):
                 cursor.execute(query, SQLGenerator.convert_params(parameters))
                 print(cursor.query)
                 results.extend([r + (disease,) for r in cursor.fetchall()])
+        elif 'success_rate' in parameters.keys():
+            parameters['status'] = ["Completed"]
+            query = SQLGenerator.generate_query(parameters, group=group)
+            cursor = self.get_cursor()
+            cursor.execute(query, SQLGenerator.convert_params(parameters))
+            print(cursor.query)
+            completed_studies = cursor.fetchall()
+            parameters['status'] = ["Withdrawn", "Terminated"]
+            query = SQLGenerator.generate_query(parameters, group=group)
+            cursor = self.get_cursor()
+            cursor.execute(query, SQLGenerator.convert_params(parameters))
+            print(cursor.query)
+            failed_studies = cursor.fetchall()
+            results = self.calculate_accuracies(completed_studies, failed_studies)
+
         else:
             query = SQLGenerator.generate_query(parameters, group=group)
             cursor = self.get_cursor()
@@ -171,6 +186,27 @@ class DBConnector(QObject):
 
         print(results)
         self.bot_request_processed_signal.emit(parameters, group)
+
+    # Called to calculate the accuracies of a certain study
+    def calculate_accuracies(self, pos_instances, neg_instances):
+        results = []
+        dict = {}
+        if pos_instances == None or len(pos_instances) == 0:
+            return results
+        for count, location in pos_instances:
+            dict[location] = count
+        if neg_instances != None and len(pos_instances) > 0:
+            for count, location in neg_instances:
+                if location in dict:
+                    value = dict[location]
+                    dict[location] = (value/ (value + neg_instances[location])) * 100
+            for location in dict:
+                results.append((dict[location], location))
+        else:
+            for location in dict:
+                results.append((100, location))
+
+        return results
 
     # This slot is called when response is received from the DialogFlow bot
     def process_bot_request(self, resolved_query, parameters, contexts, action):
