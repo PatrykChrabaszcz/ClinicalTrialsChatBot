@@ -397,7 +397,7 @@ if __name__ == '__main__':
 
 
     db = DatabaseConnector()
-    db.cur.execute("SELECT design_outcomes.population from studies INNER JOIN design_outcomes on studies.nct_id = design_outcomes.nct_id ")
+    db.cur.execute("SELECT outcomes.population from outcomes")
     result = db.cur.fetchall()
     dict = {}
     print(len(result))

@@ -149,8 +149,7 @@ class DBConnector(QObject):
         logger.log('Requested to compare countries, query the database')
 
         # If there is a disease in the parameters we need to include all sub-diseases as well
-
-        if 'disease' in parameters.keys():
+        if 'disease' in parameters.keys() and 'success_rate' not in parameters:
             diseases = parameters['disease']
             results = []
             for disease in diseases:
@@ -160,7 +159,7 @@ class DBConnector(QObject):
                 cursor.execute(query, SQLGenerator.convert_params(parameters))
                 print(cursor.query)
                 results.extend([r + (disease,) for r in cursor.fetchall()])
-        elif 'success_rate' in parameters.keys():
+        elif 'success_rate' in parameters:
             parameters['status'] = ["Completed"]
             query = SQLGenerator.generate_query(parameters, group=group)
             cursor = self.get_cursor()
@@ -174,7 +173,6 @@ class DBConnector(QObject):
             print(cursor.query)
             failed_studies = cursor.fetchall()
             results = self.calculate_accuracies(completed_studies, failed_studies)
-
         else:
             query = SQLGenerator.generate_query(parameters, group=group)
             cursor = self.get_cursor()
@@ -199,17 +197,16 @@ class DBConnector(QObject):
         if neg_instances != None and len(neg_instances) > 0:
             for count, location in neg_instances:
                 neg[location] = count
-            for location in pos_instances:
-                if location in neg_instances:
-                    completed_studies = pos_instances[location]
-                    accuracy = (completed_studies / (completed_studies + neg_instances[location])) * 100
-                    results.append(location, accuracy)
+            for location in pos:
+                if location in neg:
+                    completed_studies = pos[location]
+                    accuracy = (completed_studies / (completed_studies + neg[location])) * 100
+                    results.append((accuracy, location))
                 else:
-                    results.append(location, 100)
+                    results.append((100, location))
         else:
-            for location in dict:
+            for location in pos:
                 results.append((100, location))
-
         return results
 
     # This slot is called when response is received from the DialogFlow bot
