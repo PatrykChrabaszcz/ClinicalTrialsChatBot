@@ -55,13 +55,36 @@ class DialogFlow(QObject):
             self.user_speak_signal.emit(resolved_query)
             if result['actionIncomplete']:
                 self.bot_speak_signal.emit(result['fulfillment']['speech'])
-                # TODO: anything else needed?
             else:
                 if action != 'input.unknown':
                     self.bot_speak_signal.emit(result['fulfillment']['speech'] + ' Querying the database…')
-                    self.bot_request_signal.emit(resolved_query, parameters, contexts, action)
+                    if '.next' not in action:
+                        self.bot_request_signal.emit(resolved_query, parameters, contexts, action)
+                    else:
+                        action = action.split('.')[0]
+                        if len(contexts) > 0:
+                            parameters = self._merge_from_context(parameters, contexts[0])
+                            self.bot_request_signal.emit(resolved_query, parameters, contexts, action)
+                        else:
+                            self.bot_speak_signal.emit('Unknown error.\n')
                 else:
                     self.bot_speak_signal.emit(result['fulfillment']['speech'])
+
+    # noinspection PySimplifyBooleanCheck,PyMethodMayBeStatic
+    def _merge_from_context(self, parameters, context):
+        parameters_merged = {}
+        for p in parameters:
+            original_p = p[:-5]
+            parameters_merged[original_p] = context['parameters'][original_p]
+            if parameters[p] != []:
+                parameters_merged[original_p] = parameters[p]
+
+        if parameters['geo-country_next'] != []:  # override the location with new data
+            parameters_merged['geo-city'] = []
+        elif parameters['geo-city_next'] != []:
+            parameters_merged['geo-country'] = []
+
+        return parameters_merged
 
 
 if __name__ == '__main__':
