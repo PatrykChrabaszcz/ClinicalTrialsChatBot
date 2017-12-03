@@ -98,7 +98,8 @@ class SQLGenerator:
                 if len(v) != 0:
                     new_params[k] = v
             else:
-                new_params[k] = v
+                if len(v) != 0:
+                    new_params[k] = v
 
         return new_params
 
@@ -149,7 +150,7 @@ class DBConnector(QObject):
         logger.log('Requested to compare countries, query the database')
 
         # If there is a disease in the parameters we need to include all sub-diseases as well
-        if 'disease' in parameters.keys() and 'success_rate' not in parameters:
+        if 'disease' in parameters and 'success_rate' not in parameters:
             diseases = parameters['disease']
             results = []
             for disease in diseases:
@@ -160,6 +161,7 @@ class DBConnector(QObject):
                 print(cursor.query)
                 results.extend([r + (disease,) for r in cursor.fetchall()])
         elif 'success_rate' in parameters:
+            parameters['disease'] = get_subcategories((parameters['disease'])[0], self.disease_dictionary)
             parameters['status'] = ["Completed"]
             query = SQLGenerator.generate_query(parameters, group=group)
             cursor = self.get_cursor()
