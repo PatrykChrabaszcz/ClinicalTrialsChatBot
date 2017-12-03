@@ -1,16 +1,17 @@
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QTextEdit, QLineEdit, QTabWidget, QScrollArea, QSizePolicy
-from PyQt5.QtWidgets import QAbstractScrollArea, QAction
-from src.MapWidget import MapWidget
-from src.DialogWidget import DialogWidget
-from src.InputConsole import InputConsole
-from src.DialogFlow import DialogFlow
-from src.TreeWidget import TreeWidget
-from src.ChartWidget import ChartWidget
-from src.DatabaseConnector import DatabaseConnector
-from src.HintWindow import HintWindow
-from src.LogWindow import logger, LogWindow
+from PyQt5.QtWidgets import QAction
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QTabWidget, \
+    QScrollArea, QStackedWidget
 
+from WaitingOverlay import WaitingOverlay
+from src.ChartWidget import ChartWidget
 from src.DBConnector import DBConnector
+from src.DialogFlow import DialogFlow
+from src.DialogWidget import DialogWidget
+from src.HintWindow import HintWindow
+from src.InputConsole import InputConsole
+from src.LogWindow import logger, LogWindow
+from src.MapWidget import MapWidget
+from src.TreeWidget import TreeWidget
 
 
 class MainWindow(QMainWindow):
@@ -28,7 +29,7 @@ class MainWindow(QMainWindow):
         self.dialog_widget = DialogWidget(self.centralWidget())
         self.input_console = InputConsole(self.centralWidget())
         self.dialogflow = DialogFlow(self)
-        #self.database_connector = DatabaseConnector(self)
+        # self.database_connector = DatabaseConnector(self)
         self.database_connector = DBConnector(self)
 
         # Arrange components in a layout
@@ -41,12 +42,20 @@ class MainWindow(QMainWindow):
         self.l_h.addLayout(self.l_v_right, 2)
 
         self.tab_widget_visualization = QTabWidget(self.centralWidget())
+        self.central_stacked_widget = QStackedWidget(self.centralWidget())
+        self.waiting_overlay = WaitingOverlay(self.central_stacked_widget)
+
+        self.central_stacked_widget.addWidget(self.tab_widget_visualization)
+        self.central_stacked_widget.addWidget(self.waiting_overlay)
+
         self.scroll_area = QScrollArea(self.centralWidget())
         self.scroll_area.setWidget(self.chart_widget)
         self.scroll_area.setWidgetResizable(True)
         self.tab_widget_visualization.addTab(self.scroll_area, 'Chart')
         self.tab_widget_visualization.addTab(self.map_widget, 'Map')
-        self.l_v_middle.addWidget(self.tab_widget_visualization)
+        self.l_v_middle.addWidget(self.central_stacked_widget)
+
+        self.central_stacked_widget.setCurrentIndex(0)
 
         self.l_v_right.addWidget(self.dialog_widget)
         self.l_v_right.addWidget(self.input_console)
@@ -63,6 +72,7 @@ class MainWindow(QMainWindow):
         # Highlight diseases and drugs for which we search in the database
         self.dialogflow.bot_request_signal.connect(self.disease_widget.highlight_bot_request)
         self.dialogflow.bot_request_signal.connect(self.drug_widget.highlight_bot_request)
+        self.dialogflow.bot_request_signal.connect(self._on_bot_request_initiated)
 
         # Display conversation
         self.dialogflow.user_speak_signal.connect(self.dialog_widget.user_message_entered)
@@ -74,6 +84,7 @@ class MainWindow(QMainWindow):
         # Display query on the chart and on the map
         self.database_connector.bot_request_processed_signal.connect(self.map_widget.display_processed_request)
         self.database_connector.bot_request_processed_signal.connect(self.chart_widget.display_processed_request)
+        self.database_connector.bot_request_processed_signal.connect(self._on_bot_request_finished)
 
         # Add some additional features
         # Double click on the disease and drug tree will insert text to the input_console
@@ -96,3 +107,10 @@ class MainWindow(QMainWindow):
 
         logger.log('Start application')
 
+    def _on_bot_request_initiated(self, _0, _1, _2, _3):
+        self.central_stacked_widget.setCurrentIndex(1)
+        self.input_console.setDisabled(True)
+
+    def _on_bot_request_finished(self, _0, _1):
+        self.central_stacked_widget.setCurrentIndex(0)
+        self.input_console.setDisabled(False)

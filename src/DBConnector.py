@@ -1,9 +1,13 @@
+import pickle
+
 import psycopg2
-import datetime
+from PyQt5 import QtCore
 from PyQt5.QtCore import QObject, pyqtSignal
+
 from src.LogWindow import logger
 from src.utils import get_subcategories
-import pickle
+
+
 # Hostname:  aact-prod.cr4nrslb1lw7.us-east-1.rds.amazonaws.com
 # Port: 5432
 # Database name:  aact
@@ -40,7 +44,8 @@ class SQLGenerator:
     def generate_query(parameters, group=None):
         # We want geo-city and geo-country to be the first element used for grouping
         group = sorted(group, key=lambda x: x != 'geo-city' and x != 'geo-country')
-        join_sqls = set([SQLGenerator.joins[key] for key in list(parameters.keys()) + group if key in SQLGenerator.joins])
+        join_sqls = set(
+            [SQLGenerator.joins[key] for key in list(parameters.keys()) + group if key in SQLGenerator.joins])
         where_sqls = [SQLGenerator.filters[key] for key in parameters.keys() if key in SQLGenerator.filters]
 
         sql = [
@@ -104,8 +109,19 @@ class SQLGenerator:
         return new_params
 
 
-class DBConnector(QObject):
+class QueryThread(QtCore.QThread):
+    def __init__(self, db_connector, parameters, group=None):
+        super(QueryThread, self).__init__()
+        self.parameters = parameters
+        self.group = group
+        self.db_connector = db_connector
 
+    def run(self):
+        self.db_connector.run_query(self.parameters, self.group)
+        self.db_connector.query_thread = None
+
+
+class DBConnector(QObject):
     A_comp = 'compare'
     A_comp_grp_city = 'compare_grouping_city'
     A_comp_grp_country = 'compare_grouping_country'
@@ -114,13 +130,14 @@ class DBConnector(QObject):
 
     connection_info = "dbname='aact' " \
                       "user='aact' " \
-                      "host='aact-prod.cr4nrslb1lw7.us-east-1.rds.amazonaws.com' "\
-                      "password='aact' "\
+                      "host='aact-prod.cr4nrslb1lw7.us-east-1.rds.amazonaws.com' " \
+                      "password='aact' " \
                       "port=5432"
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._conn = None
+        self.query_thread = None
         with open("resources/disease_num2name.p", "rb") as f:
             self.disease_dictionary = pickle.load(f)
 
@@ -212,7 +229,7 @@ class DBConnector(QObject):
         return results
 
     # This slot is called when response is received from the DialogFlow bot
-    def process_bot_request(self, resolved_query, parameters, contexts, action):
+    def process_bot_request(self, resolved_query, parameters, contexts, action, threaded=True):
         param = SQLGenerator.cleared_params(parameters)
         print(param)
         param["action"] = action
@@ -231,18 +248,23 @@ class DBConnector(QObject):
             if action == DBConnector.A_comp_grp_country:
                 group_by.append('geo-country')
 
-            self.run_query(param, group=list(set(group_by)))
+            if not threaded:
+                self.run_query(param, group=list(set(group_by)))
+            else:
+                self.query_thread = QueryThread(self, param, group=list(set(group_by)))
+                self.query_thread.start()
+
 
 if __name__ == '__main__':
-
     db = DBConnector()
     c = db.get_cursor()
-    c.execute("SELECT COUNT(DISTINCT studies.nct_id) , facilities.city , studies.phase, studies.nct_id FROM studies INNER JOIN conditions on studies.nct_id = conditions.nct_id  INNER JOIN facilities on studies.nct_id = facilities.nct_id  WHERE studies.phase IN ('Phase 1', 'Phase 2') AND facilities.country IN ('Italy') AND conditions.name IN ('Osteoarthritis') GROUP BY facilities.city, studies.phase, studies.nct_id")
+    c.execute(
+        "SELECT COUNT(DISTINCT studies.nct_id) , facilities.city , studies.phase, studies.nct_id FROM studies INNER JOIN conditions on studies.nct_id = conditions.nct_id  INNER JOIN facilities on studies.nct_id = facilities.nct_id  WHERE studies.phase IN ('Phase 1', 'Phase 2') AND facilities.country IN ('Italy') AND conditions.name IN ('Osteoarthritis') GROUP BY facilities.city, studies.phase, studies.nct_id")
 
     print(c.fetchall())
 
-    #result = db.cur.fetchmany(150)
-    #for line in result:
+    # result = db.cur.fetchmany(150)
+    # for line in result:
     #    print(line)
     #
     # # 1st question
