@@ -53,11 +53,10 @@ class DialogFlow(QObject):
             action = result['action']
 
             self.user_speak_signal.emit(resolved_query)
-            if result['actionIncomplete']:
-                self.bot_speak_signal.emit(result['fulfillment']['speech'])
-            else:
+            self.bot_speak_signal.emit(result['fulfillment']['speech'])
+
+            if not result['actionIncomplete']:
                 if action != 'input.unknown':
-                    self.bot_speak_signal.emit(result['fulfillment']['speech'] + ' Querying the database…')
                     if '.next' not in action:
                         self.bot_request_signal.emit(resolved_query, parameters, contexts, action)
                     else:
@@ -67,8 +66,6 @@ class DialogFlow(QObject):
                             self.bot_request_signal.emit(resolved_query, parameters, contexts, action)
                         else:
                             self.bot_speak_signal.emit('Unknown error.\n')
-                else:
-                    self.bot_speak_signal.emit(result['fulfillment']['speech'])
 
     # noinspection PySimplifyBooleanCheck,PyMethodMayBeStatic
     def _merge_from_context(self, parameters, context):

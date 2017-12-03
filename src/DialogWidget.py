@@ -18,10 +18,11 @@ class DialogWidget(QTextEdit):
 
     @staticmethod
     def bot_speech(message):
-        import pyttsx3
-        engine = pyttsx3.init()
-        engine.say(message)
-        engine.runAndWait()
+        pass
+        # import pyttsx3
+        # engine = pyttsx3.init()
+        # engine.say(message)
+        # engine.runAndWait()
 
     def bot_text(self, message):
         thread = threading.Thread(target=DialogWidget.bot_speech, args=(message, ))
