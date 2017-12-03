@@ -73,16 +73,29 @@ class DialogFlow(QObject):
     # noinspection PySimplifyBooleanCheck,PyMethodMayBeStatic
     def _merge_from_context(self, parameters, context):
         parameters_merged = {}
+
+        # take followup intent params, replacing their original values if specified
         for p in parameters:
             original_p = p[:-5]
             parameters_merged[original_p] = context['parameters'][original_p]
-            if parameters[p] != []:
+            if (isinstance(parameters[p], list) and parameters[p] != []) \
+                    or (isinstance(parameters[p], str) and parameters[p] != ''):
                 parameters_merged[original_p] = parameters[p]
 
-        if parameters['geo-country_next'] != []:  # override the location with new data
-            parameters_merged['geo-city'] = []
-        elif parameters['geo-city_next'] != []:
-            parameters_merged['geo-country'] = []
+        # carry over any other params originally present
+        for p in context['parameters']:
+            if p.endswith('.original') or p.endswith('_next'):
+                continue
+            else:
+                if p not in parameters_merged:
+                    parameters_merged[p] = context['parameters'][p]
+
+        # override the location with new data for the Compare intent
+        if 'geo-country_next' in parameters and 'geo-city_next' in parameters:
+            if parameters['geo-country_next'] != []:
+                parameters_merged['geo-city'] = []
+            elif parameters['geo-city_next'] != []:
+                parameters_merged['geo-country'] = []
 
         return parameters_merged
 
