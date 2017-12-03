@@ -2,4 +2,7 @@ pyqt5
 PyQtChart
 psycopg2
 apiai
+pyttsx3
 
+For windows in case of win32api or win32.com error:
+pypiwin32
