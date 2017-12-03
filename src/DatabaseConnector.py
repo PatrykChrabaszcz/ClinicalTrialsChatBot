@@ -397,12 +397,15 @@ if __name__ == '__main__':
 
 
     db = DatabaseConnector()
-    db.cur.execute("SELECT COUNT(DISTINCT studies.nct_id), EXTRACT(YEAR from studies.start_date) FROM studies WHERE EXTRACT(YEAR from studies.start_date) = '2013' GROUP BY EXTRACT(YEAR from studies.start_date) ")
+    db.cur.execute("SELECT design_outcomes.population from studies INNER JOIN design_outcomes on studies.nct_id = design_outcomes.nct_id ")
     result = db.cur.fetchall()
-    for line, value in result:
-        print(line)
-        print(result)
-    print(1)
+    dict = {}
+    print(len(result))
+    for line in result:
+        dict[line[0]] = True
+    print(len(dict))
+    for key in dict:
+        print(key)
     '''
     db.cur.execute("SELECT * FROM studies WHERE studies.nct_id = 'NCT03144440'")
     result = db.cur.fetchone()

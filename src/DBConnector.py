@@ -190,18 +190,22 @@ class DBConnector(QObject):
     # Called to calculate the accuracies of a certain study
     def calculate_accuracies(self, pos_instances, neg_instances):
         results = []
-        dict = {}
+        pos = {}
+        neg = {}
         if pos_instances == None or len(pos_instances) == 0:
             return results
         for count, location in pos_instances:
-            dict[location] = count
-        if neg_instances != None and len(pos_instances) > 0:
+            pos[location] = count
+        if neg_instances != None and len(neg_instances) > 0:
             for count, location in neg_instances:
-                if location in dict:
-                    value = dict[location]
-                    dict[location] = (value/ (value + neg_instances[location])) * 100
-            for location in dict:
-                results.append((dict[location], location))
+                neg[location] = count
+            for location in pos_instances:
+                if location in neg_instances:
+                    completed_studies = pos_instances[location]
+                    accuracy = (completed_studies / (completed_studies + neg_instances[location])) * 100
+                    results.append(location, accuracy)
+                else:
+                    results.append(location, 100)
         else:
             for location in dict:
                 results.append((100, location))
