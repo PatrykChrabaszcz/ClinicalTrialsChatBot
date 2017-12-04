@@ -59,13 +59,20 @@ class SQLGenerator:
                 ", %s " % SQLGenerator.groups[g] for g in group
             ])
 
-        sql.extend([
-            "FROM ",
-            "studies ",
-            " ".join(join_sqls),
-            " WHERE ",
-            " AND ".join(where_sqls)
-        ])
+        if where_sqls:
+            sql.extend([
+                "FROM ",
+                "studies ",
+                " ".join(join_sqls),
+                " WHERE ",
+                " AND ".join(where_sqls)
+            ])
+        else:
+            sql.extend([
+                "FROM ",
+                "studies ",
+                " ".join(join_sqls)
+            ])
 
         if group is not None and len(group) != 0:
             sql.extend([
@@ -188,7 +195,8 @@ class DBConnector(QObject):
                     cursor.execute(query, SQLGenerator.convert_params(parameters))
                     print(cursor.query)
                     failed_studies = cursor.fetchall()
-                    results.extend([r + (disease,) for r in self.calculate_accuracies(completed_studies, failed_studies)])
+                    results.extend(
+                        [r + (disease,) for r in self.calculate_accuracies(completed_studies, failed_studies)])
                 else:
                     query = SQLGenerator.generate_query(parameters, group=group)
                     cursor = self.get_cursor()
