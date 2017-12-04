@@ -30,5 +30,8 @@ executables = [
 setup(name='SimpleTrial',
       version='1.0',
       description='A solution for human-like interaction with https://clinicaltrials.gov/',
+      author='TeamName',
+      maintainer='Oleksii Zhelo',
+      maintainer_email='aleks.zhelo@gmail.com',
       options=dict(build_exe=buildOptions),
       executables=executables)

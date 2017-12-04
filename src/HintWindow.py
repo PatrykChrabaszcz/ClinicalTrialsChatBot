@@ -7,18 +7,33 @@ class HintWindow(QWidget):
         def __init__(self):
             self.messages = []
             self.counter = 0
+
+            self.messages.append('You can ask the app to compare the number of studies '
+                                 'for a particular disease between the countries. \n'
+                                 'Try: \"How many Hepatitis C studies (Phase 2) were done in each country?\"')
+
+            self.messages.append('Try out: "How many virus diseases studies were done in Berlin?" \n'
+                                 'After the initial question, you can narrow down your request, or change a part '
+                                 'of it by asking followup questions like: \n'
+                                 'What about London? \n'
+                                 'What about 2011 and 2013? \n'
+                                 'What about eye diseases?')
+
             self.messages.append('You can simply double click on the disease or drug name in the left panel '
                                  'to copy it into the input console.')
-            self.messages.append('You can ask the bot to compare number of studies for a particular disease between '
-                                 'the countries. Try: \n\"How many Hepatitis C studies (Phase 2) are in each country\"')
-            self.messages.append('When you ask the bot to compare studies in different regions or different cities, '
-                                 'then he has to query Google Maps API for each location, this might take a while. '
-                                 'Be patient."')
+
+            self.messages.append('When you ask to compare studies in different regions or different cities, '
+                                 'Google Maps API must be queried for each location. This might take a while. '
+                                 'Please be patient.')
+
             self.messages.append('Try out: "Count Eye Diseases studies in 2015 and 2016 in Germany and Poland"')
 
-            self.messages.append('Try out: "Compare Neoplasm studies Phase 1 in different regions of Poland"')
+            self.messages.append('Try out: "Compare phase 1 Neoplasms studies in different regions of Poland"')
 
-            self.messages.append('Try out: "Compare Recruiting Neoplasm studies Phase 1 in different regions of Poland"')
+            self.messages.append('Try out: "How many carcinoma studies were done in Italy in 2016?"')
+
+            self.messages.append('Try out: "Compare recruiting Neoplasms studies '
+                                 'in phase 1 in different regions of Poland"')
 
         def current(self):
             return self.messages[self.counter]
