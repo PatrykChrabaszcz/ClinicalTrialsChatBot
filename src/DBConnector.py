@@ -81,7 +81,7 @@ class SQLGenerator:
         for k, v in params.items():
             if k == 'geo-country' and isinstance(v, list):
                 v = [e.replace('United States of America', 'United States') for e in v]
-
+                v = [e.replace('United Kingdom of Great Britain and Northern Ireland', 'United Kingdom') for e in v]
             if k == 'date-period' and isinstance(v, list):
                 v = [i[:4] for i in v]
             elif k == 'date-period':
