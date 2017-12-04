@@ -70,9 +70,9 @@ class MainWindow(QMainWindow):
         self.input_console.user_message_entered_signal.connect(self.dialogflow.process_user_message)
 
         # Highlight diseases and drugs for which we search in the database
+        self.dialogflow.bot_request_signal.connect(self._on_bot_request_initiated)
         self.dialogflow.bot_request_signal.connect(self.disease_widget.highlight_bot_request)
         self.dialogflow.bot_request_signal.connect(self.drug_widget.highlight_bot_request)
-        self.dialogflow.bot_request_signal.connect(self._on_bot_request_initiated)
 
         # Display conversation
         self.dialogflow.user_speak_signal.connect(self.dialog_widget.user_message_entered)
@@ -82,9 +82,9 @@ class MainWindow(QMainWindow):
         self.dialogflow.bot_request_signal.connect(self.database_connector.process_bot_request)
 
         # Display query on the chart and on the map
+        self.database_connector.bot_request_processed_signal.connect(self._on_bot_request_finished)
         self.database_connector.bot_request_processed_signal.connect(self.map_widget.display_processed_request)
         self.database_connector.bot_request_processed_signal.connect(self.chart_widget.display_processed_request)
-        self.database_connector.bot_request_processed_signal.connect(self._on_bot_request_finished)
 
         # Add some additional features
         # Double click on the disease and drug tree will insert text to the input_console
