@@ -20,6 +20,7 @@ class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
 
+        self.setWindowTitle("SimpleTrial")
         self.setCentralWidget(QWidget(self))
         self.l_h = QHBoxLayout(self.centralWidget())
 
