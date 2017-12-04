@@ -108,6 +108,9 @@ class MainWindow(QMainWindow):
 
         logger.log('Start application')
 
+        # Show hints widget at the start
+
+
     def _on_bot_request_initiated(self, _0, _1, _2, _3):
         self.central_stacked_widget.setCurrentIndex(1)
         self.input_console.setDisabled(True)

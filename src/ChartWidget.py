@@ -41,11 +41,18 @@ class ChartWidget(QChartView):
         # Case with single value
         if len(new_keys) == 0:
             value = result[0][0]
-
-            series = QPieSeries()
-            series.append("%s" % value, value)
-            chart.addSeries(series)
+            chart.setTitle(t.title() + ':\t %d' % value)
             elements = 1
+            #
+            # series = QHorizontalBarSeries()
+            # axis = QBarCategoryAxis()
+            # bar_set = QBarSet('')
+            # axis.append("%s" % value)
+            # bar_set.append(value)
+            # series.append(bar_set)
+            # chart.addSeries(series)
+            # chart.setAxisY(axis, series)
+            # elements = 1
 
         else:
             x_range = np.max(result_array)
@@ -59,6 +66,7 @@ class ChartWidget(QChartView):
 
             font = QFont()
             font.setPixelSize(1)
+
             chart.setFont(font)
 
             # 1D Data

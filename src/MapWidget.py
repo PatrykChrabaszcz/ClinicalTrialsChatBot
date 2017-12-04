@@ -34,21 +34,22 @@ class MapWidget(QWebEngineView):
                 location = self.country_cache[extended_name]
             except KeyError:
                 location = Map.geocode(extended_name)
-                self.country_cache[extended_name] = location
-                with open(self.country_cache_path, 'wb') as f:
-                    pickle.dump(self.country_cache, f)
+                if location is not None:
+                    self.country_cache[extended_name] = location
+                    with open(self.country_cache_path, 'wb') as f:
+                        pickle.dump(self.country_cache, f)
             return location
 
         def get_city(self, name, country):
             extended_name = ('%s, %s' % (name, country)).title()
-            print('Extended name %s' % extended_name)
             try:
                 location = self.city_cache[extended_name]
             except KeyError:
                 location = Map.geocode(extended_name)
-                self.city_cache[extended_name] = location
-                with open(self.city_cache_path, 'wb') as f:
-                    pickle.dump(self.city_cache, f)
+                if location is not None:
+                    self.city_cache[extended_name] = location
+                    with open(self.city_cache_path, 'wb') as f:
+                        pickle.dump(self.city_cache, f)
 
             return location
 
@@ -63,6 +64,7 @@ class MapWidget(QWebEngineView):
         self.clear_map()
         action = response['action']
         result = response['result']
+        print(response)
 
         # No data extracted
         if len(result) == 0:
@@ -76,12 +78,26 @@ class MapWidget(QWebEngineView):
                 try:
                     location_name = response['geo-country'] if 'geo-country' in response.keys() else None
                     location_name = response['geo-city'] if 'geo-city' in response.keys() else location_name
+                    location_name = location_name[0] if isinstance(location_name, list) else location_name
                     location = Map.geocode(location_name)
-                    self.map.marker(*location, color='red', title='%d' % result[0])
+                    print(location)
+                    self.map.marker(*location, color='red', title='%d' % result[0][0])
                 except:
                     pass
                 html = self.map.get_html()
                 self.setHtml(html)
+
+            else:
+                # Maybe first field is a country/city
+                try:
+                    location_name = result[0][1]
+                    location = Map.geocode(location_name)
+                    self.map.marker(*location, color='red', title='%d' % result[0][0])
+                except:
+                    pass
+                html = self.map.get_html()
+                self.setHtml(html)
+
 
             return
 
@@ -113,7 +129,6 @@ class MapWidget(QWebEngineView):
                 self.map.marker(lat, long, color='red', title='%d' % result)
             except:
                 print('Could not find a location for %s' % name)
-                pass
 
         html = self.map.get_html()
         self.setHtml(html)
@@ -125,7 +140,6 @@ class MapWidget(QWebEngineView):
                 self.map.marker(lat, long, color='red', title='%d' % result)
             except:
                 print('Could not find a location for %s' % name)
-                pass
 
         html = self.map.get_html()
         self.setHtml(html)

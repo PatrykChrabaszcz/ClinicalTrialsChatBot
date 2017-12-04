@@ -79,7 +79,9 @@ class SQLGenerator:
     def convert_params(params):
         new_params = {}
         for k, v in params.items():
-            # Right now we only use start date and year to filter by time
+            if k == 'geo-country' and isinstance(v, list):
+                v = [e.replace('United States of America', 'United States') for e in v]
+
             if k == 'date-period' and isinstance(v, list):
                 v = [i[:4] for i in v]
             elif k == 'date-period':
@@ -207,7 +209,6 @@ class DBConnector(QObject):
                 #parameters['disease'] = get_subcategories((parameters['disease'])[0], self.disease_dictionary)
         '''
 
-
         parameters["result"] = results
 
         print(results)
@@ -218,11 +219,11 @@ class DBConnector(QObject):
         results = []
         pos = {}
         neg = {}
-        if pos_instances == None or len(pos_instances) == 0:
+        if pos_instances is None or len(pos_instances) == 0:
             return results
         for count, location in pos_instances:
             pos[location] = count
-        if neg_instances != None and len(neg_instances) > 0:
+        if neg_instances is not None and len(neg_instances) > 0:
             for count, location in neg_instances:
                 neg[location] = count
             for location in pos:
@@ -268,69 +269,9 @@ if __name__ == '__main__':
     db = DBConnector()
     c = db.get_cursor()
     c.execute(
-        "SELECT COUNT(DISTINCT studies.nct_id) , facilities.city , studies.phase, studies.nct_id FROM studies INNER JOIN conditions on studies.nct_id = conditions.nct_id  INNER JOIN facilities on studies.nct_id = facilities.nct_id  WHERE studies.phase IN ('Phase 1', 'Phase 2') AND facilities.country IN ('Italy') AND conditions.name IN ('Osteoarthritis') GROUP BY facilities.city, studies.phase, studies.nct_id")
+        "SELECT COUNT(DISTINCT studies.nct_id) , facilities.city , studies.phase, studies.nct_id FROM studies"
+        " INNER JOIN conditions on studies.nct_id = conditions.nct_id  INNER JOIN facilities on "
+        "studies.nct_id = facilities.nct_id  WHERE studies.phase IN ('Phase 1', 'Phase 2') AND facilities.country "
+        "IN ('Italy') AND conditions.name IN ('Osteoarthritis') GROUP BY facilities.city, studies.phase, studies.nct_id")
 
     print(c.fetchall())
-
-    # result = db.cur.fetchmany(150)
-    # for line in result:
-    #    print(line)
-    #
-    # # 1st question
-    # result = db.count(disease='Hepatitis C', location=None, location_modifier='each country', phase='Phase 2',
-    #                   status='active')
-    # print(result)
-    #
-    # result = db.count(disease='Lung Cancer', status='recruiting', location_modifier='different regions',
-    #                   location='France')
-    # print(result)
-    #
-    #
-
-    # may comment out, but don't delete
-#
-#     param = dict()
-#     param["geo-country"] = "Germany"
-#     #param["phase"] = "Recruiting"
-#     param["disease"] = "Hepatitis C"
-# #   param["date-period"] = str(datetime.date(2016, 6, 24))
-#     param2 = dict()
-#     param2["grouping"] = "Each Country"
-#     #param2["phase"] = "Phase 1"
-#     #param2["status"] = "Active, Not Recruiting"
-#     param2["disease"] = "Hepatitis C"
-# #   param2["date-period"] = str(datetime.date(2016, 6, 24))
-#     # 1st question
-#     test = db.count_grouping(param2)
-#     for key in test:
-#         print(key)
-#         print(test[key])
-#     # 2st question
-#     test2 = db.count_place(param)
-#     for key in test2:
-#         print(key)
-#         print(test2[key])
-
-'''
-    # TODO: the missing entries are not handled yet
-    querr = db.cur.execute("select distinct mesh_term from browse_conditions")  # what about names from conditions?
-    rows = db.cur.fetchall()
-
-    file = "..\\resources\\disease_names.txt"
-    with open(file) as f:
-        diseases = f.readlines()
-        diseases = list(map(lambda x: x.split('\"')[1], diseases))
-
-    res = []
-    not_contained = []
-    for r in rows:
-        value = r[0] in diseases
-        res.append(value)
-        if not value:
-            not_contained.append(r[0])
-
-    print("Contains {0} / {1}".format(sum(res), len(rows)))
-    # TODO: see here
-    for t in not_contained:
-        print(t)
-'''
