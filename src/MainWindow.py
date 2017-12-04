@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QAction, QMessageBox
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QTabWidget, \
     QScrollArea, QStackedWidget
 
-
+import src.utils as utils
 from .WaitingOverlay import WaitingOverlay
 from src.ChartWidget import ChartWidget
 from src.DBConnector import DBConnector
@@ -117,7 +117,7 @@ class MainWindow(QMainWindow):
         # Show hints widget at the start
 
     def show_about_dialog(self):
-        about_text = QFile("resources/about_text.html")
+        about_text = QFile(utils.find_data_file("about_text.html"))
         about_text.open(QIODevice.ReadOnly)
         text = str(about_text.readAll(), 'utf-8')
         # noinspection PyCallByClass

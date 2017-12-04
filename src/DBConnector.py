@@ -4,6 +4,7 @@ import psycopg2
 from PyQt5 import QtCore
 from PyQt5.QtCore import QObject, pyqtSignal
 
+import src.utils as utils
 from src.LogWindow import logger
 from src.utils import get_subcategories
 
@@ -140,7 +141,7 @@ class DBConnector(QObject):
         super().__init__(parent)
         self._conn = None
         self.query_thread = None
-        with open("resources/disease_num2name.p", "rb") as f:
+        with open(utils.find_data_file("disease_num2name.p"), "rb") as f:
             self.disease_dictionary = pickle.load(f)
 
     # Connect to the database if connection is not present

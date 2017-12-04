@@ -1,4 +1,7 @@
 import pickle
+import sys
+import os
+
 import numpy as np
 
 
@@ -48,8 +51,8 @@ def extract_multidim_results(result):
 
 
 def get_subcategories(name, search_dict):
-
     result = []
+
     def _get_subcategories(name, search_dict, result, append=False):
         if isinstance(search_dict, dict):
             curr_name = search_dict['name'] if 'name' in search_dict.keys() else None
@@ -67,12 +70,18 @@ def get_subcategories(name, search_dict):
     return list(set(result))
 
 
+def find_data_file(filename):
+    if getattr(sys, 'frozen', False):
+        data_dir = os.path.join(os.path.dirname(sys.executable), 'resources')
+    else:
+        data_dir = os.path.join(os.path.dirname(__file__), '..', 'resources')
+
+    return os.path.realpath(os.path.join(data_dir, filename))
+
+
 if __name__ == "__main__":
-    with open("../resources/disease_num2name.p", "rb") as f:
+    with open(find_data_file("disease_num2name.p"), "rb") as f:
         # Read this dictionary just at the beginning of the program
         search_dictionary = pickle.load(f)
 
     print(get_subcategories("Hepatitis, Viral, Human", search_dictionary))
-
-
-

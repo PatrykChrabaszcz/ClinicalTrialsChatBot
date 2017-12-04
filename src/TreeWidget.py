@@ -5,6 +5,8 @@ from PyQt5.QtWidgets import QTreeView, QApplication, QAbstractItemView
 from PyQt5.QtCore import QAbstractItemModel, QModelIndex, Qt, QItemSelection, QItemSelectionModel
 import pickle
 
+import src.utils as utils
+
 
 class TreeNode:
     def __init__(self, data, number):
@@ -123,11 +125,11 @@ class TreeWidget(QTreeView):
     def __init__(self, name, parent=None):
         super().__init__(parent)
         self.name = name
-        self.model = TreeModel("resources/%s_num2name.p" % name, "", self)
+        self.model = TreeModel(utils.find_data_file("%s_num2name.p" % name), "", self)
         self.setSelectionMode(QAbstractItemView.NoSelection)
-        with open("resources/%s_num2name.p" % name, "rb") as f:
+        with open(utils.find_data_file("%s_num2name.p" % name), "rb") as f:
             self.num2name = pickle.load(f)
-        with open("resources/%s_name2num.p" % name, "rb") as f:
+        with open(utils.find_data_file("%s_name2num.p" % name), "rb") as f:
             self.name2num = pickle.load(f)
 
         self.setModel(self.model)
@@ -184,7 +186,7 @@ def main():
     app = QApplication(sys.argv)
 
     v = QTreeView()
-    model = TreeModel('../resources/disease_num2name.p', 'Disease')
+    model = TreeModel(utils.find_data_file('disease_num2name.p'), 'Disease')
     v.setModel(model)
     v.selectionModel().select(QItemSelection(model.index(0, 0), model.index(5, 0)), QItemSelectionModel.Select)
     v.setSelectionMode(QAbstractItemView.NoSelection)

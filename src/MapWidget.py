@@ -1,6 +1,7 @@
 from PyQt5.QtWebEngineWidgets import QWebEngineView
+
+import src.utils as utils
 from src.Map import Map
-import numpy as np
 import pickle
 from src.DBConnector import DBConnector
 from src.utils import extract_multidim_results
@@ -11,8 +12,8 @@ class MapWidget(QWebEngineView):
     # Tries to cache the data in local files
     class LocationCache:
         def __init__(self):
-            self.country_cache_path = 'resources/country_cache.p'
-            self.city_cache_path = 'resources/city_cache.p'
+            self.country_cache_path = utils.find_data_file('country_cache.p')
+            self.city_cache_path = utils.find_data_file('city_cache.p')
 
             try:
                 with open(self.country_cache_path, 'rb') as f:
