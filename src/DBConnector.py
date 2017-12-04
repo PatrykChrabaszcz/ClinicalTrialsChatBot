@@ -167,37 +167,46 @@ class DBConnector(QObject):
         logger.log('Requested to compare countries, query the database')
 
         # If there is a disease in the parameters we need to include all sub-diseases as well
-        if 'disease' in parameters and 'success_rate' not in parameters:
+        if 'disease' in parameters:
             diseases = parameters['disease']
             results = []
             for disease in diseases:
                 parameters['disease'] = get_subcategories(disease, self.disease_dictionary)
-                query = SQLGenerator.generate_query(parameters, group=group)
-                cursor = self.get_cursor()
-                cursor.execute(query, SQLGenerator.convert_params(parameters))
-                print(cursor.query)
-                results.extend([r + (disease,) for r in cursor.fetchall()])
-        elif 'success_rate' in parameters:
-            parameters['disease'] = get_subcategories((parameters['disease'])[0], self.disease_dictionary)
-            parameters['status'] = ["Completed"]
-            query = SQLGenerator.generate_query(parameters, group=group)
-            cursor = self.get_cursor()
-            cursor.execute(query, SQLGenerator.convert_params(parameters))
-            print(cursor.query)
-            completed_studies = cursor.fetchall()
-            parameters['status'] = ["Withdrawn", "Terminated"]
-            query = SQLGenerator.generate_query(parameters, group=group)
-            cursor = self.get_cursor()
-            cursor.execute(query, SQLGenerator.convert_params(parameters))
-            print(cursor.query)
-            failed_studies = cursor.fetchall()
-            results = self.calculate_accuracies(completed_studies, failed_studies)
+                if 'success_rate' in parameters:
+                    parameters['status'] = ["Completed"]
+                    query = SQLGenerator.generate_query(parameters, group=group)
+                    cursor = self.get_cursor()
+                    cursor.execute(query, SQLGenerator.convert_params(parameters))
+                    print(cursor.query)
+                    completed_studies = cursor.fetchall()
+                    parameters['status'] = ["Withdrawn", "Terminated"]
+                    query = SQLGenerator.generate_query(parameters, group=group)
+                    cursor = self.get_cursor()
+                    cursor.execute(query, SQLGenerator.convert_params(parameters))
+                    print(cursor.query)
+                    failed_studies = cursor.fetchall()
+                    results.extend([r + (disease,) for r in self.calculate_accuracies(completed_studies, failed_studies)])
+                else:
+                    query = SQLGenerator.generate_query(parameters, group=group)
+                    cursor = self.get_cursor()
+                    cursor.execute(query, SQLGenerator.convert_params(parameters))
+                    print(cursor.query)
+                    results.extend([r + (disease,) for r in cursor.fetchall()])
         else:
             query = SQLGenerator.generate_query(parameters, group=group)
             cursor = self.get_cursor()
             cursor.execute(query, SQLGenerator.convert_params(parameters))
             print(cursor.query)
             results = cursor.fetchall()
+
+        '''elif 'success_rate' in parameters:
+            diseases = parameters['disease']
+            results = []
+            for disease in diseases:
+                parameters['disease'] = get_subcategories(disease, self.disease_dictionary)
+                #parameters['disease'] = get_subcategories((parameters['disease'])[0], self.disease_dictionary)
+        '''
+
 
         parameters["result"] = results
 

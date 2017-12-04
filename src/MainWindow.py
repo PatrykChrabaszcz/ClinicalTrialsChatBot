@@ -2,7 +2,8 @@ from PyQt5.QtWidgets import QAction
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QTabWidget, \
     QScrollArea, QStackedWidget
 
-from WaitingOverlay import WaitingOverlay
+
+from .WaitingOverlay import WaitingOverlay
 from src.ChartWidget import ChartWidget
 from src.DBConnector import DBConnector
 from src.DialogFlow import DialogFlow
