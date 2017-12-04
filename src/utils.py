@@ -1,4 +1,3 @@
-import json
 import pickle
 import numpy as np
 
@@ -23,7 +22,7 @@ def extract_multidim_results(result):
     indices = []
     for i, s in enumerate(keys):
         if len(s) == 1:
-            t.append(s[0])
+            t.append(str(s[0]))
         else:
             new_keys.append(s)
             indices.append(i + 1)
