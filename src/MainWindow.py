@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QAction
+from PyQt5.QtCore import QFile, QIODevice
+from PyQt5.QtWidgets import QAction, QMessageBox
 from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QTabWidget, \
     QScrollArea, QStackedWidget
 
@@ -106,10 +107,20 @@ class MainWindow(QMainWindow):
         self.open_hints_action.triggered.connect(self.hint_window.show)
         self.file_menu.addAction(self.open_hints_action)
 
+        self.about_action = QAction('About')
+        self.about_action.triggered.connect(self.show_about_dialog)
+        self.file_menu.addAction(self.about_action)
+
         logger.log('Start application')
 
         # Show hints widget at the start
 
+    def show_about_dialog(self):
+        about_text = QFile("resources/about_text.html")
+        about_text.open(QIODevice.ReadOnly)
+        text = str(about_text.readAll(), 'utf-8')
+        # noinspection PyCallByClass
+        QMessageBox.about(self.centralWidget(), 'About', text)
 
     def _on_bot_request_initiated(self, _0, _1, _2, _3):
         self.central_stacked_widget.setCurrentIndex(1)
