@@ -77,7 +77,7 @@ class ChartWidget(QChartView):
                 itr = sorted([(res, name) for (res, name) in zip(result_array, new_keys[0])])
                 for res, name in itr:
                     # Take only the first part of the name if it has multiple parts
-                    name = name.split(',')[0]
+                    name = str(name).split(',')[0]
                     bar_set.append(res)
                     axis.append(name)
 
@@ -93,7 +93,8 @@ class ChartWidget(QChartView):
                 bar_sets = [QBarSet(str(k)) for k in new_keys[1]]
                 # Array with values for the 2nd category and name of the 1st dimension
                 for res, name in itr:
-                    name = name.split(',')[0]
+
+                    name = str(name).split(',')[0]
                     for i, (r, name2) in enumerate(zip(res, new_keys[1])):
                         bar_sets[i].append(r)
                     axis.append(name)

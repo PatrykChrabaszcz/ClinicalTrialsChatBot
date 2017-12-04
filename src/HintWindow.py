@@ -11,6 +11,14 @@ class HintWindow(QWidget):
                                  'to copy it into the input console.')
             self.messages.append('You can ask the bot to compare number of studies for a particular disease between '
                                  'the countries. Try: \n\"How many Hepatitis C studies (Phase 2) are in each country\"')
+            self.messages.append('When you ask the bot to compare studies in different regions or different cities, '
+                                 'then he has to query Google Maps API for each location, this might take a while. '
+                                 'Be patient."')
+            self.messages.append('Try out: "Count Eye Diseases studies in 2015 and 2016 in Germany and Poland"')
+
+            self.messages.append('Try out: "Compare Neoplasm studies Phase 1 in different regions of Poland"')
+
+            self.messages.append('Try out: "Compare Recruiting Neoplasm studies Phase 1 in different regions of Poland"')
 
         def current(self):
             return self.messages[self.counter]

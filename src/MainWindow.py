@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
         self.l_v_right = QVBoxLayout()
 
         self.l_h.addLayout(self.l_h_left, 1)
-        self.l_h.addLayout(self.l_v_middle, 3)
+        self.l_h.addLayout(self.l_v_middle, 5)
         self.l_h.addLayout(self.l_v_right, 2)
 
         self.tab_widget_visualization = QTabWidget(self.centralWidget())
